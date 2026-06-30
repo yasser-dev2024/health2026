@@ -44,6 +44,7 @@ urlpatterns = [
     path('assistant/', assistant_views.assistant_view, name='assistant'),
     path('nearby/', location_views.nearby_view, name='nearby'),
     path('hero/', hero_views.hero_view, name='hero'),
+    path('hero/certificate/<int:entry_id>/', hero_views.hero_certificate_view, name='hero_certificate'),
     path('pages/<slug:page_key>/', campaign_views.campaign_page_view, name='campaign_page'),
     path('qr/profile/', qr_views.qr_profile_view, name='qr_profile'),
     path('qr/<slug:slug>/', qr_views.qr_location_view, name='qr_location'),

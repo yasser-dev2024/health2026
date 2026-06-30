@@ -2826,7 +2826,8 @@ th {
 
 .official-certificate {
   position: relative;
-  width: min(100%, 58rem);
+  width: min(100%, 62rem);
+  aspect-ratio: 1492 / 1054;
   overflow: hidden;
   border-radius: 8px;
   background: #fff;
@@ -2835,54 +2836,71 @@ th {
 
 .official-certificate > img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
 }
 
 .official-certificate-text {
   position: absolute;
-  inset-inline: 18%;
-  top: 29%;
-  display: grid;
+  inset-inline: 15%;
+  top: 30.5%;
+  height: 38%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-items: center;
+  justify-content: flex-start;
   text-align: center;
-  row-gap: clamp(0.08rem, 0.35vw, 0.28rem);
+  row-gap: 0;
+  pointer-events: none;
 }
 
-.official-certificate-text span {
+.official-certificate-text .certificate-title {
   color: #123F6D;
-  font-size: clamp(0.78rem, 1.5vw, 1.45rem);
+  font-size: clamp(1rem, 2.05vw, 2rem);
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.official-certificate-text .certificate-campaign {
+  margin: clamp(0.3rem, 0.95vw, 0.72rem) 0 0;
+  color: #D4AF37;
+  font-size: clamp(1.6rem, 4.15vw, 3.85rem);
+  line-height: 1.1;
   font-weight: 950;
 }
 
-.official-certificate-text h2 {
-  margin: 0.18rem 0 0;
-  color: #D4AF37;
-  font-size: clamp(1.05rem, 3vw, 2.35rem);
-  line-height: 1.1;
-}
-
-.official-certificate-text p {
-  margin: 0.2rem 0 0;
+.official-certificate-text .certificate-awarded {
+  margin: clamp(0.3rem, 0.95vw, 0.7rem) 0 0;
   color: #475569;
-  font-size: clamp(0.56rem, 1.18vw, 0.98rem);
+  font-size: clamp(0.74rem, 1.6vw, 1.35rem);
   font-weight: 800;
-  line-height: 1.45;
-  max-width: 82%;
+  line-height: 1.35;
 }
 
-.official-certificate-text strong {
-  margin-top: 0.06rem;
+.official-certificate-text .certificate-name {
+  margin-top: clamp(0.24rem, 0.75vw, 0.55rem);
   color: #0f172a;
-  font-size: clamp(1.05rem, 3.2vw, 2.35rem);
+  font-size: clamp(1.85rem, 4.8vw, 4.2rem);
   line-height: 1.08;
-  max-width: 82%;
+  max-width: 94%;
   overflow-wrap: anywhere;
 }
 
-.official-certificate-text b {
-  margin-top: 0.2rem;
+.official-certificate-text .certificate-note {
+  margin: clamp(0.42rem, 1.05vw, 0.82rem) 0 0;
+  color: #475569;
+  font-size: clamp(0.72rem, 1.42vw, 1.22rem);
+  font-weight: 900;
+  line-height: 1.35;
+  max-width: 100%;
+}
+
+.official-certificate-text .certificate-badge {
+  margin-top: clamp(0.18rem, 0.5vw, 0.42rem);
   color: #15508A;
-  font-size: clamp(0.62rem, 1.25vw, 1.05rem);
+  font-size: clamp(0.92rem, 2vw, 1.75rem);
+  line-height: 1.2;
 }
 
 @media (max-width: 520px) {
@@ -2921,20 +2939,41 @@ th {
   }
 
   .official-certificate-text {
-    inset-inline: 15%;
-    top: 30%;
+    inset-inline: 10%;
+    top: 30.25%;
+    height: 39%;
   }
 
-  .official-certificate-text h2 {
-    font-size: clamp(0.82rem, 5vw, 1.35rem);
+  .official-certificate-text .certificate-title {
+    font-size: clamp(0.66rem, 3.9vw, 0.98rem);
   }
 
-  .official-certificate-text strong {
-    font-size: clamp(0.9rem, 6vw, 1.55rem);
+  .official-certificate-text .certificate-campaign {
+    margin-top: 0.18rem;
+    font-size: clamp(0.92rem, 6vw, 1.62rem);
   }
 
-  .official-certificate-text p {
-    max-width: 88%;
+  .official-certificate-text .certificate-awarded {
+    margin-top: 0.15rem;
+    font-size: clamp(0.52rem, 3.35vw, 0.78rem);
+  }
+
+  .official-certificate-text .certificate-name {
+    margin-top: 0.12rem;
+    font-size: clamp(1.05rem, 7.5vw, 2rem);
+    max-width: 96%;
+  }
+
+  .official-certificate-text .certificate-note {
+    margin-top: 0.2rem;
+    font-size: clamp(0.48rem, 2.95vw, 0.76rem);
+    line-height: 1.24;
+    max-width: 98%;
+  }
+
+  .official-certificate-text .certificate-badge {
+    margin-top: 0.15rem;
+    font-size: clamp(0.58rem, 3.6vw, 0.92rem);
   }
 }
 

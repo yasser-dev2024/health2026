@@ -188,33 +188,37 @@
       const score = certificate.dataset.score || '0';
       const total = certificate.dataset.total || '0';
       const badge = certificate.dataset.badge || 'بطل الصحة';
-      const date = certificate.dataset.date || new Date().toLocaleDateString('ar-SA');
       const centerX = canvas.width / 2;
+
+      function y(percent) {
+        return Math.round(canvas.height * percent);
+      }
+
+      function font(size, weight = 'bold') {
+        return `${weight} ${Math.round(canvas.width * size)}px Tahoma, Arial`;
+      }
 
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       ctx.direction = 'rtl';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#123F6D';
-      ctx.font = 'bold 48px Tahoma, Arial';
-      ctx.fillText('شهادة شكر وتقدير', centerX, 330);
+      ctx.font = font(0.034);
+      ctx.fillText('شهادة شكر وتقدير', centerX, y(0.37));
       ctx.fillStyle = '#D4AF37';
-      ctx.font = 'bold 62px Tahoma, Arial';
-      ctx.fillText('بطل الصحة في عسير', centerX, 420);
+      ctx.font = font(0.048);
+      ctx.fillText('بطل الصحة في عسير', centerX, y(0.455));
       ctx.fillStyle = '#4B5563';
-      ctx.font = '28px Tahoma, Arial';
-      ctx.fillText('تمنح هذه الشهادة إلى', centerX, 500);
+      ctx.font = font(0.021, '600');
+      ctx.fillText('تمنح هذه الشهادة إلى', centerX, y(0.525));
       ctx.fillStyle = '#0F172A';
-      ctx.font = 'bold 58px Tahoma, Arial';
-      ctx.fillText(name, centerX, 585);
+      ctx.font = font(0.05);
+      ctx.fillText(name, centerX, y(0.61));
       ctx.fillStyle = '#334155';
-      ctx.font = '27px Tahoma, Arial';
-      ctx.fillText(`تقديرًا لمشاركته في تحدي بطل الصحة وتحقيقه ${score} من ${total} نقطة`, centerX, 650);
+      ctx.font = font(0.018, '700');
+      ctx.fillText(`تقديرًا لمشاركته في تحدي بطل الصحة وتحقيقه ${score} من ${total} نقطة`, centerX, y(0.67));
       ctx.fillStyle = '#15508A';
-      ctx.font = 'bold 30px Tahoma, Arial';
-      ctx.fillText(badge, centerX, 705);
-      ctx.fillStyle = '#64748B';
-      ctx.font = '24px Tahoma, Arial';
-      ctx.fillText(date, centerX, 785);
+      ctx.font = font(0.022);
+      ctx.fillText(badge, centerX, y(0.71));
       callback(canvas);
     };
     img.onerror = function () {

@@ -16,19 +16,20 @@
           data-score="{{ entry.score }}"
           data-total="{{ entry.total }}"
           data-badge="{{ entry.badge_label }}"
+          data-phone="{{ entry.phone }}"
           data-date="{{ entry.created_at|date:'Y-m-d' }}"
         >
           <img src="{% static 'img/ba52181c-15a2-425a-8258-78e00424343b.png' %}" alt="شهادة بطل الصحة في عسير">
           <div class="official-certificate-text">
-            <span>شهادة شكر وتقدير</span>
-            <h2>بطل الصحة في عسير</h2>
-            <p>تمنح هذه الشهادة إلى</p>
-            <strong>{{ entry.participant_name|default:"بطل الصحة" }}</strong>
-            <p>
+            <span class="certificate-title">شهادة شكر وتقدير</span>
+            <h2 class="certificate-campaign">بطل الصحة في عسير</h2>
+            <p class="certificate-awarded">تمنح هذه الشهادة إلى</p>
+            <strong class="certificate-name">{{ entry.participant_name|default:"بطل الصحة" }}</strong>
+            <p class="certificate-note">
               تقديرًا لمشاركته في تحدي بطل الصحة وتحقيقه
               {{ entry.score }} من {{ entry.total }} نقطة.
             </p>
-            <b>{{ entry.badge_label }}</b>
+            <b class="certificate-badge">{{ entry.badge_label }}</b>
           </div>
         </article>
 
