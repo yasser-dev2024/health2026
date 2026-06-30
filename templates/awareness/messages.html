@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}الرسائل التوعوية{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">نصائح صحية</span>
+    <h1>الرسائل التوعوية</h1>
+    <p>رسائل قصيرة تناسب التنقل والفعاليات في عسير.</p>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container grid">
+    {% for message in messages %}
+      <article class="card">
+        <span class="badge">{{ message.category }}</span>
+        <h2>{{ message.title }}</h2>
+        <p>{{ message.text }}</p>
+      </article>
+    {% empty %}
+      <div class="alert info">لا توجد رسائل منشورة حاليا.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

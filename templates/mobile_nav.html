@@ -1,0 +1,11 @@
+{% if not request.path|slice:":7" == "/admin/" and request.path != "/admin" %}
+<nav class="mobile-bottom-nav" aria-label="تنقل الجوال">
+  <a href="{% url 'core:home' %}"><span>⌂</span>الرئيسية</a>
+  <a href="{% url 'journey:start' %}"><span>↗</span>رحلتي</a>
+  <a href="{% url 'messages' %}"><span>□</span>رسائل</a>
+  <a href="{% url 'downloads' %}"><span>⇩</span>ملفات</a>
+  <a href="{% url 'hero' %}"><span>★</span>بطل الصحة</a>
+  <a href="{% url 'passport' %}"><span>◇</span>الجواز</a>
+  <a href="{% url 'assistant' %}"><span>+</span>مساعد</a>
+</nav>
+{% endif %}

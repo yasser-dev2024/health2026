@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}إدارة QR المواقع{% endblock %}
+{% block body_class %}admin-shell{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block mobile_nav %}{% endblock %}
+{% block floating_actions %}{% endblock %}
+
+{% block content %}
+<div class="admin-mobile-top">
+  <div style="display:flex;align-items:center;gap:.75rem">
+    <span class="brand-mark"><img src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي"></span>
+    <strong>إدارة QR المواقع</strong>
+    <a class="btn secondary small" style="margin-right:auto" href="{% url 'admin_dashboard' %}">اللوحة</a>
+  </div>
+</div>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <span class="brand-mark"><img src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي"></span>
+      <div>
+        <strong>إدارة QR</strong>
+        <div style="color:#15508A;font-size:.78rem;font-weight:900">QR LOCATIONS</div>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <a href="{% url 'admin_dashboard' %}">▦ المؤشرات</a>
+      <a href="{% url 'admin_downloads' %}">📥 التحميلات</a>
+      <a href="{% url 'admin_messages' %}">💬 الرسائل</a>
+      <a href="{% url 'admin_events' %}">📅 الفعاليات</a>
+      <a href="{% url 'admin_locations' %}">📍 المواقع</a>
+      <div style="height:1px;background:#e2e8f0;margin:.5rem 0"></div>
+      <a href="#qr-create" style="background:linear-gradient(135deg,#15508A,#283A83);color:#fff;border-radius:10px;padding:.65rem .9rem;font-weight:900;font-size:.88rem">QR ＋ إنشاء QR جديد</a>
+      <a class="active" href="#qr-locations" style="color:#15508A;font-weight:800">◫ إدارة رموز QR</a>
+      <div style="height:1px;background:#e2e8f0;margin:.25rem 0"></div>
+      <a href="#qr-chart" style="font-size:.82rem;padding:.4rem .75rem">📊 أكثر المواقع مسحًا</a>
+      <a href="#qr-analytics" style="font-size:.82rem;padding:.4rem .75rem">٪ التحليلات</a>
+      <a href="#qr-table" style="font-size:.82rem;padding:.4rem .75rem">▦ جدول المواقع</a>
+      <a href="#scan-log" style="font-size:.82rem;padding:.4rem .75rem">↺ سجل المسح</a>
+      <a href="{% url 'admin_logout' %}" style="margin-top:auto;color:#be123c">تسجيل الخروج</a>
+    </nav>
+  </aside>
+
+  <main class="admin-content">
+    <section class="admin-section" id="qr-create">
+      <div class="admin-section-head">
+        <span>＋</span>
+        <div>
+          <h2>{% if editing_location %}تعديل موقع QR{% else %}إنشاء QR جديد{% endif %}</h2>
+          <p>اكتب اسم الموقع. سيتم إنشاء رابط وباركود يفتح المنصة ويسجل الإحصائيات باسم هذا الموقع.</p>
+        </div>
+      </div>
+      {% if not editing_location %}
+        <div class="admin-section-body">
+          <button class="btn" type="button" data-qr-create-toggle>إنشاء QR جديد</button>
+        </div>
+      {% endif %}
+      <div class="admin-section-body" data-qr-create-form{% if not editing_location %} hidden{% endif %}>
+        <form class="form-panel qr-create-form" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save">
+          {% if editing_location %}<input type="hidden" name="location_id" value="{{ editing_location.id }}">{% endif %}
+          <div class="grid two">
+            {% for field in form %}
+              <div class="field">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}<small style="display:block;color:#64748b;font-weight:800">{{ field.help_text }}</small>{% endif %}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="alert info" style="margin-top:1rem">
+            يقوم النظام تلقائيًا بإنشاء slug آمن، رابط QR، وصورة PNG قابلة للتحميل بعد الحفظ.
+          </div>
+          <div class="actions-row" style="margin-top:1rem">
+            <button type="submit">{% if editing_location %}حفظ التعديل{% else %}حفظ{% endif %}</button>
+            {% if editing_location %}<a class="btn secondary" href="{% url 'admin_qr_locations' %}#qr-create">إلغاء التعديل</a>{% endif %}
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="admin-section" id="qr-locations">
+      <div class="admin-section-head indigo">
+        <span>QR</span>
+        <div>
+          <h2>إدارة QR المواقع</h2>
+          <p>الرابط يفتح الصفحة الرئيسية ويحمل `qr=slug` فقط، مع بقاء الروابط القديمة قابلة للقراءة.</p>
+        </div>
+      </div>
+      <div class="admin-section-body">
+        <div class="admin-card-grid">
+          <div class="admin-metric"><span>إجمالي QR المنشأة</span><strong>{{ qr_stats.total_created }}</strong><small>كل المواقع المحفوظة</small></div>
+          <div class="admin-metric"><span>إجمالي المسحات</span><strong>{{ qr_stats.total_scans }}</strong><small>كل عمليات QR</small></div>
+          <div class="admin-metric"><span>إجمالي الزوار</span><strong>{{ qr_stats.total_visitors }}</strong><small>زوار فريدون حسب visitorId</small></div>
+          <div class="admin-metric"><span>المسحات اليوم</span><strong>{{ qr_stats.scans_today }}</strong><small>حسب تاريخ الخادم</small></div>
+          <div class="admin-metric"><span>المسحات هذا الأسبوع</span><strong>{{ qr_stats.scans_week }}</strong><small>آخر 7 أيام</small></div>
+          <div class="admin-metric"><span>المسحات هذا الشهر</span><strong>{{ qr_stats.scans_month }}</strong><small>من بداية الشهر الحالي</small></div>
+          <div class="admin-metric"><span>أكثر موقع</span><strong style="font-size:1.2rem">{{ qr_stats.most_scanned.name|default:"-" }}</strong><small>الأعلى استخدامًا</small></div>
+          <div class="admin-metric"><span>أقل موقع</span><strong style="font-size:1.2rem">{{ qr_stats.least_scanned.name|default:"-" }}</strong><small>الأقل استخدامًا</small></div>
+          <div class="admin-metric"><span>آخر عملية مسح</span><strong style="font-size:1.2rem">{% if qr_stats.last_scan %}{{ qr_stats.last_scan.qr_location.name }}{% else %}-{% endif %}</strong><small>{% if qr_stats.last_scan %}{{ qr_stats.last_scan.created_at }}{% else %}لا توجد مسحات بعد{% endif %}</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-section" id="qr-chart">
+      <div class="admin-section-head gold">
+        <span>▤</span>
+        <div>
+          <h2>أكثر المواقع مسحًا للـ QR</h2>
+          <p>رسم سريع يساعدك تعرف أين يتحرك الزوار</p>
+        </div>
+      </div>
+      <div class="admin-section-body">
+        {% for location in qr_stats.top_locations %}
+          <div class="chart-row">
+            <div class="chart-row-head">
+              <span>{{ location.name }}</span>
+              <span>{{ location.visit_total }}</span>
+            </div>
+            <div class="chart-track">
+              <span class="chart-fill" style="width:{% widthratio location.visit_total qr_stats.chart_total 100 %}%"></span>
+            </div>
+          </div>
+        {% empty %}
+          <div class="alert info">أضف أول موقع ليظهر الرسم البياني هنا.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="admin-section" id="qr-analytics">
+      <div class="admin-section-head slate">
+        <span>٪</span>
+        <div>
+          <h2>تحليلات زوار QR</h2>
+          <p>رسوم مبسطة من إجابات الدخول الذكي الاختيارية، بدون سؤال عن الأمراض مباشرة.</p>
+        </div>
+      </div>
+      <div class="admin-section-body">
+        <div class="grid two">
+          <article class="card">
+            <h3>أكثر الفئات العمرية</h3>
+            {% for row in analytics.age_groups %}
+              <div class="chart-row">
+                <div class="chart-row-head"><span>{{ row.label }}</span><span>{{ row.count }}</span></div>
+                <div class="chart-track"><span class="chart-fill" style="width:{{ row.percent }}%"></span></div>
+              </div>
+            {% empty %}
+              <div class="alert info">لم تُسجل إجابات عمرية بعد.</div>
+            {% endfor %}
+          </article>
+          <article class="card">
+            <h3>أكثر المواضيع الصحية اهتمامًا</h3>
+            {% for row in analytics.health_topics %}
+              <div class="chart-row">
+                <div class="chart-row-head"><span>{{ row.label }}</span><span>{{ row.count }}</span></div>
+                <div class="chart-track"><span class="chart-fill" style="width:{{ row.percent }}%"></span></div>
+              </div>
+            {% empty %}
+              <div class="alert info">لم تُسجل اهتمامات صحية بعد.</div>
+            {% endfor %}
+          </article>
+          <article class="card">
+            <h3>نسبة الزوار والمقيمين</h3>
+            {% for row in analytics.visitor_types %}
+              <div class="chart-row">
+                <div class="chart-row-head"><span>{{ row.label }}</span><span>{{ row.percent }}%</span></div>
+                <div class="chart-track"><span class="chart-fill" style="width:{{ row.percent }}%"></span></div>
+              </div>
+            {% empty %}
+              <div class="alert info">لم تُسجل إجابات زائر/مقيم بعد.</div>
+            {% endfor %}
+          </article>
+          <article class="card">
+            <h3>نسبة العائلات والأفراد</h3>
+            {% for row in analytics.party_types %}
+              <div class="chart-row">
+                <div class="chart-row-head"><span>{{ row.label }}</span><span>{{ row.percent }}%</span></div>
+                <div class="chart-track"><span class="chart-fill" style="width:{{ row.percent }}%"></span></div>
+              </div>
+            {% empty %}
+              <div class="alert info">لم تُسجل إجابات فرد/عائلة بعد.</div>
+            {% endfor %}
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-section" id="qr-table">
+      <div class="admin-section-head indigo">
+        <span>▦</span>
+        <div>
+          <h2>جدول المواقع</h2>
+          <p>QR للطباعة، الرابط، الحالة، والإحصاءات</p>
+        </div>
+      </div>
+      <div class="admin-section-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>صورة QR</th>
+                <th>اسم الموقع</th>
+                <th>slug</th>
+                <th>رابط QR</th>
+                <th>عدد المسحات</th>
+                <th>آخر مسح</th>
+                <th>الرابط الفعلي</th>
+                <th>الحالة</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in locations %}
+                {% with location=row.object %}
+                  <tr>
+                    <td><img class="qr-preview-img" src="{{ row.png_url }}" alt="QR {{ location.slug }}"></td>
+                    <td>
+                      <strong>{{ location.name }}</strong>
+                      {% if location.description %}<div style="color:#64748b;font-size:.82rem">{{ location.description }}</div>{% endif %}
+                    </td>
+                    <td><code>{{ location.slug }}</code></td>
+                    <td><code style="display:block;max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.qr_url }}</code></td>
+                    <td><span class="badge">{{ location.visit_total }}</span></td>
+                    <td>{% if location.latest_scan %}{{ location.latest_scan }}{% else %}-{% endif %}</td>
+                    <td><code style="display:block;max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ location.target_url|default:'المنصة الرئيسية' }}</code></td>
+                    <td>{% if location.active %}<span class="badge success">نشط</span>{% else %}<span class="badge warning">غير نشط</span>{% endif %}</td>
+                    <td>
+                      <div class="actions-row">
+                        <a class="btn secondary small" href="{{ row.png_download_url }}">تحميل للطباعة</a>
+                        <button class="btn secondary small" type="button" data-copy-text="{{ row.qr_url }}">نسخ الرابط</button>
+                        <a class="btn secondary small" href="{{ row.qr_url }}">اختبار العد</a>
+                        <a class="btn secondary small" href="{% url 'admin_qr_locations' %}?edit={{ location.id }}#qr-create">تعديل</a>
+                        <form method="post" style="display:inline">
+                          {% csrf_token %}
+                          <input type="hidden" name="action" value="toggle">
+                          <input type="hidden" name="location_id" value="{{ location.id }}">
+                          <button class="btn secondary small" type="submit">{% if location.active %}تعطيل{% else %}تفعيل{% endif %}</button>
+                        </form>
+                        <form method="post" style="display:inline" onsubmit="return confirm('هل تريد حذف موقع QR؟');">
+                          {% csrf_token %}
+                          <input type="hidden" name="action" value="delete">
+                          <input type="hidden" name="location_id" value="{{ location.id }}">
+                          <button class="btn secondary small" type="submit">حذف</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                {% endwith %}
+              {% empty %}
+                <tr><td colspan="9">لا توجد مناطق بعد.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="admin-section-head">
+        <span>◇</span>
+        <div>
+          <h2>عناصر QR المرتبطة بالأختام</h2>
+          <p>QrItem يمكن أن يمنح ختمًا في جواز صحة عسير</p>
+        </div>
+      </div>
+      <div class="admin-section-body">
+        <div class="grid">
+          {% for item in items %}
+            <article class="card">
+              <span class="badge">{{ item.item_type }}</span>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.description }}</p>
+              <p>{{ item.scans_count }} مسح {% if item.stamp %}- {{ item.stamp.name }}{% endif %}</p>
+              <a class="btn secondary small" href="{% url 'qr_item' item.id %}">اختبار العنصر</a>
+            </article>
+          {% empty %}
+            <div class="alert info">أضف عناصر QR من Django Admin.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-section" id="scan-log">
+      <div class="admin-section-head slate">
+        <span>↺</span>
+        <div>
+          <h2>QR Scan Log</h2>
+          <p>سجل آخر عمليات المسح حسب النقطة والوقت ومصدر الرابط</p>
+        </div>
+      </div>
+      <div class="admin-section-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Scan ID</th>
+                <th>QR ID</th>
+                <th>QR Name</th>
+                <th>Visitor ID</th>
+                <th>DateTime</th>
+                <th>Source URL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for scan in scan_log_rows %}
+                <tr>
+                  <td><code>{{ scan.id }}</code></td>
+                  <td>{% if scan.qr_location %}{{ scan.qr_location.id }}{% elif scan.qr_item %}{{ scan.qr_item.id }}{% else %}-{% endif %}</td>
+                  <td>{% if scan.qr_location %}{{ scan.qr_location.name }}{% elif scan.qr_item %}{{ scan.qr_item.title }}{% else %}-{% endif %}</td>
+                  <td><code>{{ scan.visitor_id }}</code></td>
+                  <td>{{ scan.created_at }}</td>
+                  <td><code>{{ scan.path }}</code></td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6">لا توجد مسحات QR مسجلة بعد.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+  document.addEventListener('click', function (event) {
+    const toggle = event.target.closest('[data-qr-create-toggle]');
+    if (toggle) {
+      const formArea = document.querySelector('[data-qr-create-form]');
+      if (formArea) {
+        formArea.hidden = false;
+        formArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
+
+    const button = event.target.closest('[data-copy-text]');
+    if (!button) {
+      return;
+    }
+    const originalText = button.textContent;
+    navigator.clipboard.writeText(button.dataset.copyText || '').then(function () {
+      button.textContent = 'تم النسخ';
+      window.setTimeout(function () {
+        button.textContent = originalText;
+      }, 1400);
+    });
+  });
+</script>
+{% endblock %}

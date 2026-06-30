@@ -1,0 +1,288 @@
+{% extends "dashboard/admin_base.html" %}
+{% load static %}
+
+{% block title %}لوحة التحكم الشاملة{% endblock %}
+{% block page_title_short %}المؤشرات{% endblock %}
+{% block nav_home %}class="active"{% endblock %}
+
+{% block admin_main %}
+
+<!-- ===== QR QUICK CREATE CARD ===== -->
+<div class="qr-hero-card" id="qr-quick">
+  <div class="qr-hero-icon">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="3" width="7" height="7" rx="1" stroke="white" stroke-width="2"/>
+      <rect x="5" y="5" width="3" height="3" fill="white"/>
+      <rect x="14" y="3" width="7" height="7" rx="1" stroke="white" stroke-width="2"/>
+      <rect x="16" y="5" width="3" height="3" fill="white"/>
+      <rect x="3" y="14" width="7" height="7" rx="1" stroke="white" stroke-width="2"/>
+      <rect x="5" y="16" width="3" height="3" fill="white"/>
+      <path d="M14 14h3M17 14v3M14 17h3M17 17v3M14 20h3M20 14v3" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="qr-hero-body">
+    <div class="qr-hero-label">الميزة الرئيسية</div>
+    <h2 class="qr-hero-title">إنشاء رمز QR جديد</h2>
+    <p class="qr-hero-desc">أنشئ باركود QR لأي موقع صحي — يولد رابطًا ذكيًا يتتبع عدد الزيارات ومصادرها تلقائيًا</p>
+  </div>
+  <div class="qr-hero-actions">
+    <a class="qr-hero-btn" href="/admin/qr-locations/#qr-create">＋ إنشاء QR جديد</a>
+    <a class="qr-hero-btn secondary" href="/admin/qr-locations/">عرض كل الرموز</a>
+  </div>
+</div>
+
+<!-- ===== QR STATS CARD ===== -->
+<section class="admin-section" style="margin-bottom:.5rem">
+  <div class="admin-section-head indigo">
+    <span style="font-size:1.5rem">QR</span>
+    <div>
+      <h2>إحصائيات رموز QR</h2>
+      <p>نظرة شاملة على كل رموز QR المنشأة وحالتها واستخدامها</p>
+    </div>
+    <a class="btn secondary small" href="/admin/qr-locations/" style="margin-right:auto">إدارة QR ←</a>
+  </div>
+  <div class="admin-section-body">
+    <div class="admin-card-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+      {% with s=qr_locations_stats %}
+        <div class="admin-metric" style="background:linear-gradient(135deg,#15508A15,#15508A08)">
+          <span>إجمالي رموز QR</span>
+          <strong style="color:#15508A;font-size:2.5rem">{{ s.total }}</strong>
+          <small>كل الرموز المحفوظة</small>
+        </div>
+        <div class="admin-metric" style="background:linear-gradient(135deg,#16910D15,#16910D08)">
+          <span>الرموز النشطة</span>
+          <strong style="color:#16910D;font-size:2.5rem">{{ s.active }}</strong>
+          <small>تعمل وتسجّل الزيارات</small>
+        </div>
+        <div class="admin-metric" style="background:linear-gradient(135deg,#dc262615,#dc262608)">
+          <span>الرموز غير النشطة</span>
+          <strong style="color:#dc2626;font-size:2.5rem">{{ s.inactive }}</strong>
+          <small>معطلة مؤقتًا</small>
+        </div>
+        <div class="admin-metric" style="background:linear-gradient(135deg,#a97c0015,#a97c0008)">
+          <span>أكثر رمز استخدامًا</span>
+          <strong style="font-size:1.1rem;color:#a97c00">{{ s.most_used.name|default:"—" }}</strong>
+          <small>{% if s.most_used %}{{ s.most_used.scans_count|default:"0" }} مسح{% else %}لا توجد بيانات بعد{% endif %}</small>
+        </div>
+        <div class="admin-metric" style="background:linear-gradient(135deg,#28389315,#28389308)">
+          <span>أحدث رمز أُنشئ</span>
+          <strong style="font-size:1.1rem;color:#283A83">{{ s.recent.name|default:"—" }}</strong>
+          <small>{% if s.recent %}{{ s.recent.created_at|date:"d/m/Y" }}{% else %}لا توجد رموز بعد{% endif %}</small>
+        </div>
+        <a class="admin-metric" href="/admin/qr-locations/#qr-create" style="background:linear-gradient(135deg,#15508A,#283A83);text-decoration:none;cursor:pointer">
+          <span style="color:rgba(255,255,255,.8)">إجراء سريع</span>
+          <strong style="color:#fff;font-size:1.5rem">＋ إنشاء</strong>
+          <small style="color:rgba(255,255,255,.7)">رمز QR جديد الآن</small>
+        </a>
+      {% endwith %}
+    </div>
+  </div>
+</section>
+
+<!-- ===== METRICS ===== -->
+<section class="admin-section" id="dashboard">
+  <div class="admin-section-head">
+    <span>▦</span>
+    <div>
+      <h2>مؤشرات صيف وصحة</h2>
+      <p>ملخص سريع للمحتوى والتفاعل والزيارات — اضغط أي قسم للإدارة المباشرة</p>
+    </div>
+  </div>
+  <div class="admin-section-body">
+    <div class="admin-card-grid">
+      {% for m in metrics %}
+        <a class="admin-metric {% if m.color_class %}{{ m.color_class }}{% endif %}" href="{% if m.key == 'downloads' %}/admin/downloads/{% elif m.key == 'messages' %}/admin/messages/{% elif m.key == 'events' %}/admin/events/{% elif m.key == 'locations' %}/admin/locations/{% elif m.key == 'qr_scans' %}/admin/qr-locations/{% else %}#{% endif %}" style="text-decoration:none;display:block">
+          <span>{{ m.label }}</span>
+          <strong>{{ m.value }}</strong>
+          <small>اضغط للإدارة ←</small>
+        </a>
+      {% endfor %}
+    </div>
+
+    <!-- QR Mini Stats -->
+    <div style="margin-top:1.25rem;background:#f8fafc;border-radius:16px;padding:1rem">
+      <div style="font-weight:900;color:#15508A;margin-bottom:.75rem;font-size:.9rem">📷 إحصائيات مسح QR</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:.65rem">
+        {% with s=qr_stats %}
+          <div style="background:#fff;border:1px solid #E0F9FA;border-radius:12px;padding:.75rem;text-align:center"><div style="font-size:1.5rem;font-weight:950;color:#15508A">{{ s.total }}</div><div style="font-size:.72rem;color:#64748b;font-weight:800">إجمالي</div></div>
+          <div style="background:#fff;border:1px solid #E0F9FA;border-radius:12px;padding:.75rem;text-align:center"><div style="font-size:1.5rem;font-weight:950;color:#16910D">{{ s.today }}</div><div style="font-size:.72rem;color:#64748b;font-weight:800">اليوم</div></div>
+          <div style="background:#fff;border:1px solid #E0F9FA;border-radius:12px;padding:.75rem;text-align:center"><div style="font-size:1.5rem;font-weight:950;color:#1691D0">{{ s.week }}</div><div style="font-size:.72rem;color:#64748b;font-weight:800">الأسبوع</div></div>
+          <div style="background:#fff;border:1px solid #E0F9FA;border-radius:12px;padding:.75rem;text-align:center"><div style="font-size:1.5rem;font-weight:950;color:#283A83">{{ s.month }}</div><div style="font-size:.72rem;color:#64748b;font-weight:800">الشهر</div></div>
+          <div style="background:#fff;border:1px solid #E0F9FA;border-radius:12px;padding:.75rem;text-align:center"><div style="font-size:1.5rem;font-weight:950;color:#057590">{{ s.visitors }}</div><div style="font-size:.72rem;color:#64748b;font-weight:800">زوار فريدون</div></div>
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ANALYTICS GRID ===== -->
+<section class="admin-section">
+  <div class="admin-section-head slate">
+    <span>📊</span>
+    <div>
+      <h2>الرسوم البيانية والتحليلات</h2>
+      <p>توزيع المحتوى والزوار والتحميلات</p>
+    </div>
+  </div>
+  <div class="admin-section-body">
+    <div class="grid two" style="gap:1rem">
+
+      <!-- QR Locations Chart -->
+      {% if top_qr_locations %}
+      <article class="card" style="margin:0;padding:1rem">
+        <h3 style="margin:0 0 .75rem;font-size:.9rem;color:#283A83">📍 أكثر مواقع QR مسحًا</h3>
+        {% for loc in top_qr_locations %}
+          <div class="chart-row">
+            <div class="chart-row-head"><span>{{ loc.name|truncatechars:22 }}</span><span>{{ loc.visit_total }}</span></div>
+            <div class="chart-track"><span class="chart-fill" style="width:{% widthratio loc.visit_total chart_total 100 %}%"></span></div>
+          </div>
+        {% endfor %}
+        <a class="btn secondary small" href="/admin/qr-locations/" style="margin-top:.75rem;width:100%;text-align:center">إدارة QR ←</a>
+      </article>
+      {% endif %}
+
+      <!-- Downloads Chart -->
+      {% if top_downloads %}
+      <article class="card" style="margin:0;padding:1rem">
+        <h3 style="margin:0 0 .75rem;font-size:.9rem;color:#a97c00">📥 أكثر المواد تحميلًا</h3>
+        {% with max_dl=top_downloads.0.download_count %}
+          {% for item in top_downloads %}
+            <div class="chart-row">
+              <div class="chart-row-head"><span>{{ item.title|truncatechars:22 }}</span><span>{{ item.download_count }}</span></div>
+              <div class="chart-track"><span class="chart-fill chart-fill-gold" style="width:{% widthratio item.download_count max_dl 100 %}%"></span></div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+        <div style="margin-top:.5rem;font-size:.78rem;color:#64748b;font-weight:800">إجمالي التحميلات: {{ total_downloads_count }}</div>
+        <a class="btn secondary small" href="/admin/downloads/" style="margin-top:.5rem;width:100%;text-align:center">إدارة التحميلات ←</a>
+      </article>
+      {% endif %}
+
+      <!-- Download Types -->
+      {% if dl_type_series %}
+      <article class="card" style="margin:0;padding:1rem">
+        <h3 style="margin:0 0 .75rem;font-size:.9rem;color:#a97c00">📁 المواد حسب النوع</h3>
+        {% with max_dl_type=dl_type_series.0.count %}
+          {% for row in dl_type_series %}
+            <div class="chart-row">
+              <div class="chart-row-head"><span>{{ row.label }}</span><span>{{ row.count }}</span></div>
+              <div class="chart-track"><span class="chart-fill chart-fill-gold" style="width:{% widthratio row.count max_dl_type 100 %}%"></span></div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+      </article>
+      {% endif %}
+
+      <!-- Events Chart -->
+      {% if events_series %}
+      <article class="card" style="margin:0;padding:1rem">
+        <h3 style="margin:0 0 .75rem;font-size:.9rem;color:#057590">📅 الفعاليات حسب التصنيف</h3>
+        {% with max_ev=events_series.0.count %}
+          {% for row in events_series %}
+            <div class="chart-row">
+              <div class="chart-row-head"><span>{{ row.category }}</span><span>{{ row.count }}</span></div>
+              <div class="chart-track"><span class="chart-fill chart-fill-teal" style="width:{% widthratio row.count max_ev 100 %}%"></span></div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+        <a class="btn secondary small" href="/admin/events/" style="margin-top:.75rem;width:100%;text-align:center">إدارة الفعاليات ←</a>
+      </article>
+      {% endif %}
+
+      <!-- Locations Chart -->
+      {% if loc_series %}
+      <article class="card" style="margin:0;padding:1rem">
+        <h3 style="margin:0 0 .75rem;font-size:.9rem;color:#16910D">🏥 المواقع حسب النوع</h3>
+        {% with max_loc=loc_series.0.count %}
+          {% for row in loc_series %}
+            {% if row.count %}
+            <div class="chart-row">
+              <div class="chart-row-head"><span>{{ row.label }}</span><span>{{ row.count }}</span></div>
+              <div class="chart-track"><span class="chart-fill chart-fill-green" style="width:{% widthratio row.count max_loc 100 %}%"></span></div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% endwith %}
+        <a class="btn secondary small" href="/admin/locations/" style="margin-top:.75rem;width:100%;text-align:center">إدارة المواقع ←</a>
+      </article>
+      {% endif %}
+
+      <!-- Visitor Demographics -->
+      {% if age_series %}
+      <article class="card" style="margin:0;padding:1rem">
+        <h3 style="margin:0 0 .75rem;font-size:.9rem;color:#283A83">👥 الفئات العمرية للزوار</h3>
+        {% for row in age_series %}
+          <div class="chart-row">
+            <div class="chart-row-head"><span>{{ row.label }}</span><span>{{ row.count }} ({{ row.percent }}%)</span></div>
+            <div class="chart-track"><span class="chart-fill" style="width:{{ row.percent }}%"></span></div>
+          </div>
+        {% endfor %}
+      </article>
+      {% endif %}
+
+      {% if visitor_type_series %}
+      <article class="card" style="margin:0;padding:1rem">
+        <h3 style="margin:0 0 .75rem;font-size:.9rem;color:#057590">🧭 زوار مقابل مقيمين</h3>
+        {% for row in visitor_type_series %}
+          <div class="chart-row">
+            <div class="chart-row-head"><span>{{ row.label }}</span><span>{{ row.count }} ({{ row.percent }}%)</span></div>
+            <div class="chart-track"><span class="chart-fill chart-fill-teal" style="width:{{ row.percent }}%"></span></div>
+          </div>
+        {% endfor %}
+      </article>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== RECENT QR SCANS ===== -->
+<section class="admin-section">
+  <div class="admin-section-head indigo">
+    <span>QR</span>
+    <div><h2>آخر مسحات QR</h2><p>عمليات المسح الأخيرة بالترتيب الزمني</p></div>
+  </div>
+  <div class="admin-section-body">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>النوع</th><th>الموقع / العنصر</th><th>الزائر</th><th>الوقت</th></tr>
+        </thead>
+        <tbody>
+          {% for scan in recent_scans %}
+            <tr>
+              <td>{{ scan.get_qr_type_display }}</td>
+              <td>{% if scan.qr_location %}{{ scan.qr_location.name }}{% elif scan.qr_item %}{{ scan.qr_item.title }}{% else %}-{% endif %}</td>
+              <td><code style="font-size:.72rem">{{ scan.visitor_id|slice:':10' }}...</code></td>
+              <td style="font-size:.8rem">{{ scan.created_at }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4">لا توجد مسحات بعد.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:.75rem"><a class="btn secondary small" href="/admin/qr-locations/#scan-log">عرض السجل الكامل ←</a></div>
+  </div>
+</section>
+
+<!-- ===== OPERATION LOGS ===== -->
+<section class="admin-section">
+  <div class="admin-section-head slate">
+    <span>↺</span>
+    <div><h2>سجل العمليات</h2><p>آخر التعديلات والحفظ في اللوحة</p></div>
+  </div>
+  <div class="admin-section-body">
+    {% for log in recent_logs %}
+      <div class="alert info" style="margin-bottom:.6rem">
+        <strong>{{ log.action }}</strong>
+        <div style="font-size:.82rem">{{ log.user|default:"النظام" }} — {{ log.created_at }}</div>
+        {% if log.detail %}<small>{{ log.detail }}</small>{% endif %}
+      </div>
+    {% empty %}
+      <div class="alert info">لا توجد عمليات مسجلة بعد.</div>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}

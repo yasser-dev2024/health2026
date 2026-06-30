@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}دخول الإدارة{% endblock %}
+{% block body_class %}admin-shell{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block mobile_nav %}{% endblock %}
+{% block floating_actions %}{% endblock %}
+
+{% block content %}
+<section class="aseer-hero" style="min-height:100dvh;display:grid;place-items:center;padding:1rem">
+  <div class="home-asir-strip" style="position:absolute;inset-inline:0;top:0;height:12px"></div>
+  <div class="form-panel" style="width:min(460px,100%);position:relative;z-index:1">
+    <span class="brand-mark" style="margin:0 auto 1rem">
+      <img src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي">
+    </span>
+    <div style="text-align:center;margin-bottom:1rem">
+      <span class="eyebrow">بوابة الإدارة</span>
+      <h1 style="margin:.5rem 0 0;color:#15508A">لوحة التحكم</h1>
+      <p>إدارة صيف وصحة - مساعد</p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <div class="field">
+          {{ field.label_tag }}
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <button style="width:100%" type="submit">تسجيل الدخول</button>
+    </form>
+    <div class="actions-row" style="margin-top:1rem;justify-content:center">
+      <a class="btn secondary small" href="{% url 'core:home' %}">العودة للموقع</a>
+      <a class="btn secondary small" href="/django-admin/">Django Admin</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

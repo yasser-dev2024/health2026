@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}الفعاليات الصحية{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">الفعاليات</span>
+    <h1>الفعاليات الصحية في عسير</h1>
+    <p>أنشطة توعوية وميدانية مناسبة للزوار والعائلات.</p>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container grid">
+    {% for event in events %}
+      <article class="card">
+        <span class="badge">{{ event.category }}</span>
+        <h2>{{ event.title }}</h2>
+        <p>{{ event.description }}</p>
+        <p><strong>{{ event.city }}</strong> - {{ event.location }}</p>
+        <p>{{ event.date }} - {{ event.time }}</p>
+        <p>{{ event.audience }}</p>
+        {% if event.map_url %}<a class="btn secondary small" href="{{ event.map_url }}">فتح الخريطة</a>{% endif %}
+      </article>
+    {% empty %}
+      <div class="alert info">لا توجد فعاليات منشورة حاليا.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

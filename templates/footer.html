@@ -1,0 +1,14 @@
+{% load static %}
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>
+      <strong>صيف وصحة - مساعد</strong>
+      <div>منصة توعوية لزوار منطقة عسير</div>
+    </div>
+    <img src="{% static 'img/asir-white.png' %}" alt="عسير">
+    <div class="actions-row">
+      <a href="{% url 'admin_login' %}">دخول الإدارة</a>
+      <a href="/django-admin/">Django Admin</a>
+    </div>
+  </div>
+</footer>

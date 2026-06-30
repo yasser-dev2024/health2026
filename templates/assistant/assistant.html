@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}الدكتور مساعد{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">الدكتور مساعد</span>
+    <h1>مساعد توعوي بالكلمات المفتاحية</h1>
+    <p>اسأل عن المواقع الصحية، الترطيب، الطوارئ، الفعاليات، أو النصائح العامة.</p>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container grid two">
+    <form class="form-panel" method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="field">
+          {{ field.label_tag }}
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <button type="submit">إرسال السؤال</button>
+    </form>
+    <div class="card">
+      <img src="{% static 'img/doctor.png' %}" alt="الدكتور مساعد">
+      {% if result %}
+        <div class="alert {% if result.is_emergency %}danger{% else %}info{% endif %}">
+          {{ result.answer }}
+        </div>
+        <div class="actions-row">
+          {% if result.cta_url %}<a class="btn secondary small" href="{{ result.cta_url }}">{{ result.cta_label|default:"افتح الرابط" }}</a>{% endif %}
+          {% if result.link_url %}<a class="btn secondary small" href="{{ result.link_url }}">{{ result.link_label|default:"تفاصيل أكثر" }}</a>{% endif %}
+        </div>
+      {% else %}
+        <p>ستظهر الإجابة هنا بعد إرسال السؤال.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container">
+    <h2>أسئلة شائعة</h2>
+    <div class="assistant-faq-list">
+      {% for item in questions %}
+        <details class="assistant-faq">
+          <summary>
+            <span>{{ item.question }}</span>
+            <strong>+</strong>
+          </summary>
+          <div class="assistant-faq-answer">
+            <p>{{ item.answer }}</p>
+            {% if item.cta_url or item.link_url %}
+              <div class="actions-row">
+                {% if item.cta_url %}
+                  <a class="btn small" href="{{ item.cta_url }}">{{ item.cta_label|default:"افتح الرابط" }}</a>
+                {% endif %}
+                {% if item.link_url %}
+                  <a class="btn secondary small" href="{{ item.link_url }}">{{ item.link_label|default:"تفاصيل أكثر" }}</a>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </details>
+      {% empty %}
+        <div class="alert info">ستظهر الأسئلة بعد إضافتها من الإدارة.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

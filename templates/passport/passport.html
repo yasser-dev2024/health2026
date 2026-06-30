@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}جواز صحة عسير{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">جواز صحة عسير</span>
+    <h1>{{ passport.points }} نقطة</h1>
+    <p>{{ passport.scans_count }} عملية QR مسجلة لهذا الزائر.</p>
+    <a class="btn secondary small" href="https://wa.me/?text={{ whatsapp_text|urlencode }}">مشاركة عبر واتساب</a>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container grid two">
+    <div class="card">
+      <h2>الأختام</h2>
+      <div class="grid">
+        {% for stamp in all_stamps %}
+          <div class="alert {% if stamp.id in collected_stamp_ids %}info{% else %}warning{% endif %}">
+            <strong>{{ stamp.name }}</strong>
+            <div>{{ stamp.description }}</div>
+            <span class="badge">{{ stamp.points }} نقطة</span>
+            {% if stamp.id in collected_stamp_ids %}<span class="badge success">تم جمعه</span>{% endif %}
+          </div>
+        {% empty %}
+          <p>لا توجد أختام منشورة.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <h2>الإنجازات</h2>
+      {% for achievement in available_achievements %}
+        <div class="alert {% if achievement.id in achievement_ids %}info{% else %}warning{% endif %}">
+          <strong>{{ achievement.badge_label }}</strong>
+          <div>{{ achievement.description }}</div>
+          {% if achievement.id in achievement_ids %}<span class="badge success">مفتوح</span>{% endif %}
+        </div>
+      {% empty %}
+        <p>لا توجد إنجازات منشورة.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container grid two">
+    <div class="card">
+      <h2>زيارات العناصر</h2>
+      {% for visit in item_visits %}
+        <p>{{ visit.qr_item.title }} - {{ visit.created_at }}</p>
+      {% empty %}
+        <p>لم يتم مسح عناصر بعد.</p>
+      {% endfor %}
+    </div>
+    <div class="card">
+      <h2>زيارات المواقع</h2>
+      {% for visit in location_visits %}
+        <p>{{ visit.qr_location.name }} - {{ visit.created_at }}</p>
+      {% empty %}
+        <p>لم يتم مسح مواقع بعد.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

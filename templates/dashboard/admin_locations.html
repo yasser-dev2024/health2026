@@ -1,0 +1,141 @@
+{% extends "dashboard/admin_base.html" %}
+
+{% block title %}إدارة المواقع الصحية{% endblock %}
+{% block page_title_short %}المواقع{% endblock %}
+{% block nav_locations %}class="active"{% endblock %}
+
+{% block admin_main %}
+
+<section class="admin-section">
+  <div class="admin-section-head metric-green" style="background:linear-gradient(135deg,#16910D,#15803d)">
+    <span>📍</span>
+    <div>
+      <h2>المواقع الصحية</h2>
+      <p>إضافة وتعديل وترتيب المستشفيات والمراكز والصيدليات والمشايات</p>
+    </div>
+  </div>
+  <div class="admin-section-body">
+    <div class="admin-card-grid">
+      <div class="admin-metric metric-green">
+        <span>إجمالي المواقع</span>
+        <strong>{{ items.count }}</strong>
+        <small>{{ active_count }} نشط / {{ inactive_count }} مخفي</small>
+      </div>
+      {% for s in type_series %}
+        {% if s.count %}
+          <div class="admin-metric metric-teal">
+            <span>{{ s.label }}</span>
+            <strong>{{ s.count }}</strong>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="grid two" style="gap:.85rem;margin-top:1.25rem">
+      {% if type_series %}
+      <article class="card" style="margin:0;padding:.85rem">
+        <h3 style="margin:0 0 .65rem;font-size:.9rem">📊 المواقع حسب النوع</h3>
+        {% for s in type_series %}
+          {% if s.count %}
+            <div class="chart-row">
+              <div class="chart-row-head"><span>{{ s.label }}</span><span>{{ s.count }}</span></div>
+              <div class="chart-track"><span class="chart-fill chart-fill-green" style="width:{% widthratio s.count max_type_count 100 %}%"></span></div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </article>
+      {% endif %}
+      {% if city_series %}
+      <article class="card" style="margin:0;padding:.85rem">
+        <h3 style="margin:0 0 .65rem;font-size:.9rem">🏙 المواقع حسب المدينة</h3>
+        {% with max_city=city_series.0.count %}
+          {% for row in city_series %}
+            <div class="chart-row">
+              <div class="chart-row-head"><span>{{ row.city }}</span><span>{{ row.count }}</span></div>
+              <div class="chart-track"><span class="chart-fill" style="width:{% widthratio row.count max_city 100 %}%"></span></div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+      </article>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="admin-section" id="form-section">
+  <div class="admin-section-head {% if editing %}gold{% endif %}">
+    <span>{% if editing %}✏️{% else %}＋{% endif %}</span>
+    <div>
+      <h2>{% if editing %}تعديل: {{ editing.name }}{% else %}إضافة موقع جديد{% endif %}</h2>
+    </div>
+  </div>
+  {% if not editing %}
+  <div class="admin-section-body">
+    <button class="btn" type="button" onclick="this.closest('.admin-section').querySelector('.dl-form-wrap').hidden=false;this.hidden=true">＋ إضافة موقع جديد</button>
+  </div>
+  {% endif %}
+  <div class="dl-form-wrap admin-section-body" {% if not editing %}hidden{% endif %}>
+    <form method="post" action="{% if editing %}?edit={{ editing.id }}{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save">
+      {% if editing %}<input type="hidden" name="item_id" value="{{ editing.id }}">{% endif %}
+      <div class="form-grid-2">
+        {% for field in form %}
+          <div class="field">{{ field.label_tag }}{{ field }}{% for err in field.errors %}<small class="field-error">{{ err }}</small>{% endfor %}</div>
+        {% endfor %}
+      </div>
+      <div class="actions-row" style="margin-top:1rem">
+        <button type="submit" class="btn">💾 حفظ</button>
+        {% if editing %}<a class="btn secondary" href="{% url 'admin_locations' %}">إلغاء</a>{% endif %}
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="admin-section">
+  <div class="admin-section-head indigo">
+    <span>▦</span>
+    <div><h2>المواقع المحفوظة ({{ items.count }})</h2><p>الترتيب يؤثر على ظهور المواقع في صفحة المواقع القريبة</p></div>
+  </div>
+  <div class="admin-section-body">
+    <div class="mgmt-grid">
+      {% for item in items %}
+        <div class="mgmt-card {% if not item.active %}mgmt-card-inactive{% endif %}">
+          <div class="mgmt-thumb" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);display:grid;place-items:center">
+            <div style="text-align:center;padding:.5rem">
+              <div style="font-size:2rem">{% if item.location_type == 'hospital' %}🏥{% elif item.location_type == 'pharmacy' %}💊{% elif item.location_type == 'walkway' %}🚶{% elif item.location_type == 'emergency' %}🚨{% elif item.location_type == 'awareness' %}📢{% else %}🏥{% endif %}</div>
+              <div style="font-size:.72rem;color:#15803d;font-weight:900;margin-top:.25rem">{{ item.get_location_type_display }}</div>
+            </div>
+          </div>
+          <div class="mgmt-card-body">
+            <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+              <span class="badge" style="font-size:.7rem;background:#16910D;color:#fff">{{ item.city }}</span>
+              {% if not item.active %}<span class="badge warning" style="font-size:.7rem">مخفي</span>{% endif %}
+              <span style="margin-right:auto;color:#94a3b8;font-size:.72rem;font-weight:800">ترتيب: {{ item.order }}</span>
+            </div>
+            <h3 class="mgmt-title">{{ item.name }}</h3>
+            <p class="mgmt-desc">
+              {% if item.address %}{{ item.address }}{% endif %}
+              {% if item.availability %} — {{ item.availability }}{% endif %}
+              {% if item.phone %}<br><strong>📞 {{ item.phone }}</strong>{% endif %}
+            </p>
+          </div>
+          <div class="mgmt-actions">
+            <div class="mgmt-order-btns">
+              <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="order_up"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="mgmt-order-btn" type="submit">▲</button></form>
+              <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="order_down"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="mgmt-order-btn" type="submit">▼</button></form>
+            </div>
+            <a class="btn secondary small" href="?edit={{ item.id }}#form-section">✏️ تعديل</a>
+            {% if item.map_url %}<a class="btn secondary small" href="{{ item.map_url }}" target="_blank">🗺 الخريطة</a>{% endif %}
+            <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="btn secondary small" type="submit">{% if item.active %}🙈 إخفاء{% else %}👁 إظهار{% endif %}</button></form>
+            <form method="post" style="display:contents" onsubmit="return confirm('حذف {{ item.name }}؟')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="btn secondary small" type="submit" style="color:#be123c">🗑 حذف</button></form>
+          </div>
+        </div>
+      {% empty %}
+        <div class="alert info" style="grid-column:1/-1">لا توجد مواقع بعد.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

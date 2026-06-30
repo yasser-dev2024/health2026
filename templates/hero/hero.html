@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}بطل الصحة في عسير{% endblock %}
+
+{% block content %}
+<section class="health-hero-app">
+  <div class="container health-hero-shell">
+    {% if entry %}
+      <div class="hero-result-layout">
+        <article
+          class="official-certificate"
+          data-hero-certificate
+          data-template-url="{% static 'img/ba52181c-15a2-425a-8258-78e00424343b.png' %}"
+          data-name="{{ entry.participant_name|default:'بطل الصحة' }}"
+          data-score="{{ entry.score }}"
+          data-total="{{ entry.total }}"
+          data-badge="{{ entry.badge_label }}"
+          data-date="{{ entry.created_at|date:'Y-m-d' }}"
+        >
+          <img src="{% static 'img/ba52181c-15a2-425a-8258-78e00424343b.png' %}" alt="شهادة بطل الصحة في عسير">
+          <div class="official-certificate-text">
+            <span>شهادة شكر وتقدير</span>
+            <h2>بطل الصحة في عسير</h2>
+            <p>تمنح هذه الشهادة إلى</p>
+            <strong>{{ entry.participant_name|default:"بطل الصحة" }}</strong>
+            <p>
+              تقديرًا لمشاركته في تحدي بطل الصحة وتحقيقه
+              {{ entry.score }} من {{ entry.total }} نقطة.
+            </p>
+            <b>{{ entry.badge_label }}</b>
+          </div>
+        </article>
+
+        <aside class="hero-result-panel">
+          <span class="badge success">{{ entry.badge_label }}</span>
+          <h2>تم إصدار الشهادة</h2>
+          <p>حفظنا اسم المشارك ورقم الجوال والنتيجة في الإدارة للإحصائيات والتواصل.</p>
+          <div class="stats">
+            <div class="metric"><span>النقاط</span><strong>{{ entry.score }}/{{ entry.total }}</strong></div>
+            <div class="metric"><span>الجوال</span><strong style="font-size:1rem">{{ entry.phone }}</strong></div>
+          </div>
+          <div class="actions-row">
+            <button class="btn" type="button" data-download-certificate>تنزيل الشهادة</button>
+            <button class="btn secondary" type="button" data-share-certificate>مشاركة</button>
+            <a class="btn secondary" href="https://wa.me/?text={{ whatsapp_text|urlencode }}">واتساب</a>
+            <a class="btn secondary" href="{% url 'hero' %}">تحد جديد</a>
+          </div>
+        </aside>
+      </div>
+    {% elif questions %}
+      {{ hero_questions_json|json_script:"hero-question-data" }}
+
+      <form class="health-hero-card" method="post" data-hero-quiz-app>
+        {% csrf_token %}
+
+        <section class="hero-quiz-screen is-active" data-hero-screen="intro">
+          <div class="health-hero-top">
+            <div class="hero-flame" aria-hidden="true">🔥</div>
+            <h1>بطل الصحة في عسير</h1>
+            <p>اختبر معرفتك الصحية وتحد نفسك</p>
+          </div>
+
+          <div class="hero-stat-grid">
+            <div><strong>{{ total_points }}</strong><span>نقطة</span></div>
+            <div><strong>3</strong><span>دقائق</span></div>
+            <div><strong>{{ questions|length }}</strong><span>سؤال</span></div>
+          </div>
+
+          <ul class="hero-rules">
+            <li>أجب على كل سؤال باختيار الإجابة الصحيحة</li>
+            <li>ستحصل على {{ points_per_answer }} نقطة لكل إجابة صحيحة</li>
+            <li>في النهاية يمكنك مشاركة نتيجتك وتنزيل شهادتك</li>
+          </ul>
+
+          <button class="hero-primary-action" type="button" data-hero-start>ابدأ التحدي</button>
+          <img class="hero-mini-logo" src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي">
+        </section>
+
+        <section class="hero-quiz-screen" data-hero-screen="quiz" hidden>
+          <div class="hero-progress-meta">
+            <span data-hero-step-label>السؤال 1 من {{ questions|length }}</span>
+            <strong data-hero-percent>0%</strong>
+          </div>
+          <div class="hero-progress"><span data-hero-progress style="width:0%"></span></div>
+
+          <article class="hero-question-card">
+            <p data-hero-question-number>السؤال 1</p>
+            <h2 data-hero-question-text></h2>
+            <div class="hero-live-options" data-hero-options></div>
+            <div class="hero-live-feedback" data-hero-feedback hidden></div>
+            <button class="hero-primary-action" type="button" data-hero-next disabled>السؤال التالي</button>
+          </article>
+        </section>
+
+        <section class="hero-quiz-screen" data-hero-screen="contact" hidden>
+          <div class="hero-contact-head">
+            <span>الخطوة الأخيرة</span>
+            <h2>بيانات الشهادة والتواصل</h2>
+            <p>اكتب الاسم الذي تريد ظهوره في الشهادة ورقم الجوال ليظهر في لوحة الإدارة.</p>
+          </div>
+          <div class="grid two">
+            {% for field in form %}
+              <div class="field">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+          </div>
+          <div data-hero-hidden-fields></div>
+          <div class="actions-row">
+            <button class="btn secondary" type="button" data-hero-back>السابق</button>
+            <button class="btn" type="submit">إظهار النتيجة والشهادة</button>
+          </div>
+        </section>
+      </form>
+    {% else %}
+      <div class="alert info">لا توجد أسئلة منشورة حاليا. أضف الأسئلة من لوحة الإدارة.</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}تسجيل QR{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">QR</span>
+    <h1>تم تسجيل الزيارة</h1>
+    <p>أضيفت عملية المسح إلى جواز صحة عسير.</p>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container grid two">
+    <div class="card">
+      {% if scan_type == 'location' %}
+        <h2>{{ result.location.name }}</h2>
+        <p>{{ result.location.description }}</p>
+      {% else %}
+        <h2>{{ result.item.title }}</h2>
+        <p>{{ result.item.description }}</p>
+        {% if result.stamp_awarded %}
+          <div class="alert info">تم منح ختم جديد في الجواز.</div>
+        {% else %}
+          <div class="alert warning">تم تسجيل الزيارة، ولم يتم منح ختم جديد لهذه العملية.</div>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="card">
+      <h2>جوازك الآن</h2>
+      <p>{{ result.passport.points }} نقطة</p>
+      <p>{{ result.passport.scans_count }} عملية مسح</p>
+      <a class="btn" href="{% url 'passport' %}">عرض الجواز</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

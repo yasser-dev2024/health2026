@@ -1,0 +1,148 @@
+{% load static %}
+{% if not request.path|slice:":7" == "/admin/" and request.path != "/admin" and request.path != "/assistant/" %}
+<div class="smart-entry-overlay" data-smart-entry data-profile-url="{% url 'qr_profile' %}" data-csrf-token="{{ csrf_token }}" hidden aria-live="polite">
+  <div class="smart-entry-bg" aria-hidden="true"></div>
+  <span class="home-asir-strip smart-entry-strip" aria-hidden="true"></span>
+  <span class="home-gold-thread smart-entry-thread" aria-hidden="true"></span>
+
+  <section class="smart-entry-card" aria-label="الدخول الصحي الذكي">
+    <header class="smart-entry-header">
+      <span class="smart-entry-brand">
+        <img src="{% static 'img/cluster-white.png' %}" alt="تجمع عسير الصحي">
+      </span>
+      <p>Smart Health Entry</p>
+      <h1>الدخول الصحي الذكي</h1>
+    </header>
+
+    <main class="smart-entry-main">
+      <section class="smart-step is-active" data-step="age">
+        <div class="smart-step-title">
+          <span>✦</span>
+          <h2>ما فئتك العمرية؟</h2>
+        </div>
+        <div class="smart-options">
+          <button type="button" data-age="under_18" data-message="خلّ رحلتك ممتعة وآمنة: اشرب الماء، تجنب الشمس المباشرة، وابق قريبًا من عائلتك.">أقل من 18</button>
+          <button type="button" data-age="18_30" data-message="استمتع بيومك في عسير، ولا تنسَ الماء، واقي الشمس، واختيار النشاط المناسب للياقتك.">18-30</button>
+          <button type="button" data-age="31_50" data-message="صحتك أولًا: انتبه للجهد الزائد، وخذ استراحة قصيرة بين الأنشطة.">31-50</button>
+          <button type="button" data-age="51_plus" data-message="راحتك مهمة: اختر نشاطًا مناسبًا، وخذ الأمور بتدرج، واستعن بأقرب مرفق صحي عند الحاجة.">51+</button>
+        </div>
+        <button class="smart-link-button" type="button" data-skip="visitor">تخطي</button>
+      </section>
+
+      <section class="smart-step" data-step="visitor">
+        <div class="smart-note">
+          <span>✓</span>
+          <p data-age-message></p>
+        </div>
+        <div class="smart-step-title">
+          <h2>هل أنت زائر أم من سكان المنطقة؟</h2>
+        </div>
+        <div class="smart-options">
+          <button type="button" data-visitor="visitor">زائر</button>
+          <button type="button" data-visitor="resident">من سكان المنطقة</button>
+        </div>
+        <button class="smart-link-button" type="button" data-skip="party">تخطي</button>
+      </section>
+
+      <section class="smart-step" data-step="party">
+        <div class="smart-step-title">
+          <h2>هل أنت فرد أم عائلة؟</h2>
+        </div>
+        <div class="smart-options">
+          <button type="button" data-party="individual">فرد</button>
+          <button type="button" data-party="family">عائلة</button>
+        </div>
+        <button class="smart-link-button" type="button" data-skip="healthTopic">تخطي</button>
+      </section>
+
+      <section class="smart-step" data-step="healthTopic">
+        <div class="smart-step-title">
+          <h2>ما الموضوع الصحي الذي يهمك اليوم؟</h2>
+        </div>
+        <div class="smart-options smart-trip-options">
+          <button type="button" data-health-topic="blood_pressure">ضغط الدم</button>
+          <button type="button" data-health-topic="diabetes">السكري</button>
+          <button type="button" data-health-topic="heart_health">صحة القلب</button>
+          <button type="button" data-health-topic="nutrition">التغذية</button>
+          <button type="button" data-health-topic="physical_activity">النشاط البدني</button>
+          <button type="button" data-health-topic="walking">المشي</button>
+          <button type="button" data-health-topic="elderly">كبار السن</button>
+          <button type="button" data-health-topic="sleep">النوم</button>
+          <button type="button" data-health-topic="sun_protection">الوقاية من الشمس</button>
+        </div>
+        <button class="smart-link-button" type="button" data-skip="call937">تخطي</button>
+      </section>
+
+      <section class="smart-step" data-step="call937">
+        <div class="smart-step-title">
+          <span>☎</span>
+          <h2>هل تريد التواصل مع 937؟</h2>
+        </div>
+        <div class="smart-options">
+          <a class="smart-primary" href="tel:937" data-next="nearby">نعم، اتصل الآن</a>
+          <button type="button" data-next="nearby">لا، أكمل الرحلة</button>
+        </div>
+      </section>
+
+      <section class="smart-step" data-step="nearby">
+        <div class="smart-step-title">
+          <span>⌖</span>
+          <h2>هل تريد الوصول إلى أقرب مرفق صحي؟</h2>
+        </div>
+        <div class="smart-options">
+          <button class="smart-primary" type="button" data-next="facility">نعم، اعرض الأقرب</button>
+          <button type="button" data-next="trip">لا، أكمل</button>
+        </div>
+      </section>
+
+      <section class="smart-step" data-step="facility">
+        <div class="smart-step-title">
+          <h2>اختر المرفق الأقرب</h2>
+        </div>
+        <div class="smart-options">
+          <a href="{% url 'nearby' %}?type=health_center" data-finish>أقرب مركز صحي</a>
+          <a href="{% url 'nearby' %}?type=hospital" data-finish>أقرب مستشفى</a>
+          <a href="{% url 'nearby' %}?type=emergency" data-finish>أقرب طوارئ</a>
+          <a href="{% url 'nearby' %}?type=awareness" data-finish>أقرب نقطة توعوية</a>
+        </div>
+        <button class="smart-link-button" type="button" data-next="trip">أكمل الرحلة</button>
+      </section>
+
+      <section class="smart-step" data-step="trip">
+        <div class="smart-step-title">
+          <h2>أين وجهتك أو ماذا تريد في رحلتك الحالية؟</h2>
+        </div>
+        <div class="smart-options smart-trip-options">
+          <button type="button" data-trip="tourism" data-title="رحلة سياحية صحية" data-notice="اختر وقتًا مناسبًا، واشرب الماء، وخذ استراحة قصيرة بين المواقع." data-route="{% url 'events:list' %}">سياحة</button>
+          <button type="button" data-trip="sport" data-title="نشاط صحي مناسب" data-notice="ابدأ بإحماء بسيط واختر نشاطًا يناسب لياقتك." data-route="{% url 'events:list' %}">رياضة</button>
+          <button type="button" data-trip="hiking" data-title="قبل أن تبدأ الهايكنج" data-notice="خذ ماء كافيًا، استخدم واقي الشمس، ولا تذهب وحدك." data-route="{% url 'events:list' %}">هايكنج</button>
+          <button type="button" data-trip="walkway" data-title="ممشى مناسب" data-notice="ابدأ بخطوات خفيفة وتوقف عند الشعور بالإجهاد." data-route="{% url 'plan' %}">ممشى</button>
+          <button type="button" data-trip="family" data-title="فعالية عائلية آمنة" data-notice="اختر مكانًا قريبًا من الخدمات ومناسبًا لجميع أفراد العائلة." data-route="{% url 'events:list' %}">فعاليات عائلية</button>
+          <button type="button" data-trip="health" data-title="خدمات صحية قريبة" data-notice="يمكنك الوصول لأقرب مركز صحي أو الاتصال بـ 937 عند الحاجة." data-route="{% url 'nearby' %}">مراكز صحية</button>
+        </div>
+      </section>
+
+      <section class="smart-step" data-step="result">
+        <div class="smart-result">
+          <p>النتيجة المناسبة</p>
+          <h2 data-result-title></h2>
+          <p data-result-notice></p>
+          <div class="smart-tips">
+            <span>اشرب الماء بانتظام</span>
+            <span>احتفظ برقم 937 عند الحاجة</span>
+            <span>اختر وقتًا معتدلًا للنشاط</span>
+          </div>
+          <div class="smart-result-actions">
+            <a class="smart-primary" data-result-route href="{% url 'core:home' %}">افتح الاقتراح</a>
+            <button type="button" data-smart-entry-close>الدخول للرئيسية</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="smart-entry-footer">
+      نستخدم معرف زائر عشوائي فقط لتحسين الرحلة واحتساب نقاط QR، ولا نجمع رقم الجوال أو موقعًا دقيقًا.
+    </footer>
+  </section>
+</div>
+{% endif %}

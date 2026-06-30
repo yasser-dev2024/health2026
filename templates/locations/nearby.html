@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}المواقع القريبة{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">أنا الآن</span>
+    <h1>المواقع الصحية والمهمة</h1>
+    <p>مراكز صحية، طوارئ، صيدليات، مماشي، ونقاط توعوية في عسير.</p>
+  </div>
+</section>
+
+{% if site_settings.restaurants_map_url or site_settings.hotels_map_url or site_settings.events_map_url or site_settings.hiking_map_url or site_settings.landmarks_map_url or site_settings.parks_map_url %}
+<section class="section tight">
+  <div class="container">
+    <div class="actions-row">
+      {% if site_settings.restaurants_map_url %}<a class="btn secondary small" href="{{ site_settings.restaurants_map_url }}" target="_blank" rel="noopener">المطاعم</a>{% endif %}
+      {% if site_settings.hotels_map_url %}<a class="btn secondary small" href="{{ site_settings.hotels_map_url }}" target="_blank" rel="noopener">الفنادق</a>{% endif %}
+      {% if site_settings.events_map_url %}<a class="btn secondary small" href="{{ site_settings.events_map_url }}" target="_blank" rel="noopener">الفعاليات</a>{% endif %}
+      {% if site_settings.hiking_map_url %}<a class="btn secondary small" href="{{ site_settings.hiking_map_url }}" target="_blank" rel="noopener">الهايكنج</a>{% endif %}
+      {% if site_settings.landmarks_map_url %}<a class="btn secondary small" href="{{ site_settings.landmarks_map_url }}" target="_blank" rel="noopener">المعالم</a>{% endif %}
+      {% if site_settings.parks_map_url %}<a class="btn secondary small" href="{{ site_settings.parks_map_url }}" target="_blank" rel="noopener">الحدائق</a>{% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section tight">
+  <div class="container">
+    <form class="form-panel" method="get">
+      <div class="field">
+        <label for="type">تصفية حسب النوع</label>
+        <select id="type" name="type">
+          <option value="">كل المواقع</option>
+          {% for value,label in location_types %}
+            <option value="{{ value }}"{% if selected_type == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit">عرض</button>
+    </form>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container grid">
+    {% for location in locations %}
+      <article class="card">
+        <span class="badge">{{ location.get_location_type_display }}</span>
+        <h2>{{ location.name }}</h2>
+        <p>{{ location.address }}</p>
+        <p>{{ location.city }} {% if location.distance_label %}- {{ location.distance_label }}{% endif %}</p>
+        <p>{{ location.availability }}</p>
+        <div class="actions-row">
+          {% if location.phone %}<a class="btn secondary small" href="tel:{{ location.phone }}">{{ location.phone }}</a>{% endif %}
+          {% if location.map_url %}<a class="btn secondary small" href="{{ location.map_url }}">الخريطة</a>{% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <div class="alert info">لا توجد مواقع مطابقة.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

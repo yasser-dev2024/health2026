@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}مكتبة التحميلات{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">مواد توعوية</span>
+    <h1>مكتبة التحميلات</h1>
+    <p>أدلة وبطاقات صحية مختصرة للزائر — حمّل أو شارك مباشرة عبر واتساب</p>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container">
+
+    <!-- Filter Tabs -->
+    <div class="dl-filters">
+      <a class="dl-filter-tab {% if active_type == 'all' %}active{% endif %}" href="?type=all">
+        الكل <span class="dl-count">{{ type_counts.all }}</span>
+      </a>
+      {% if type_counts.pdf %}
+        <a class="dl-filter-tab {% if active_type == 'pdf' %}active{% endif %}" href="?type=pdf">
+          PDF <span class="dl-count">{{ type_counts.pdf }}</span>
+        </a>
+      {% endif %}
+      {% if type_counts.card %}
+        <a class="dl-filter-tab {% if active_type == 'card' %}active{% endif %}" href="?type=card">
+          بطاقات <span class="dl-count">{{ type_counts.card }}</span>
+        </a>
+      {% endif %}
+      {% if type_counts.post %}
+        <a class="dl-filter-tab {% if active_type == 'post' %}active{% endif %}" href="?type=post">
+          مقالات <span class="dl-count">{{ type_counts.post }}</span>
+        </a>
+      {% endif %}
+      {% if type_counts.link %}
+        <a class="dl-filter-tab {% if active_type == 'link' %}active{% endif %}" href="?type=link">
+          روابط <span class="dl-count">{{ type_counts.link }}</span>
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="dl-grid">
+      {% for item in contents %}
+        <article class="dl-card">
+
+          <!-- Thumbnail -->
+          <div class="dl-card-thumb dl-thumb-{{ item.content_type }}">
+            {% with thumb=item.get_thumbnail_src %}
+              {% if thumb %}
+                <img src="{{ thumb }}" alt="{{ item.title }}" loading="lazy">
+              {% else %}
+                <div class="dl-thumb-placeholder">
+                  {% if item.content_type == 'pdf' %}
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  {% elif item.content_type == 'card' %}
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+                  {% elif item.content_type == 'post' %}
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  {% else %}
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            <span class="dl-type-badge dl-badge-{{ item.content_type }}">{{ item.get_content_type_display }}</span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="dl-card-body">
+            <div class="dl-card-category">{{ item.category }}</div>
+            <h2 class="dl-card-title">{{ item.title }}</h2>
+            <p class="dl-card-desc">{{ item.summary }}</p>
+            <div class="dl-card-meta">
+              <span class="dl-downloads-count">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                {{ item.download_count }} تحميل
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Actions -->
+          {% with file_src=item.get_file_src %}
+            <div class="dl-card-actions">
+              {% if file_src %}
+                <a class="btn dl-btn-download" href="?download={{ item.id }}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  {{ item.action_label }}
+                </a>
+                <a class="btn dl-btn-whatsapp"
+                   href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%0A{{ request.build_absolute_uri }}%3Fdownload%3D{{ item.id }}"
+                   target="_blank" rel="noopener noreferrer">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  مشاركة واتساب
+                </a>
+              {% else %}
+                <span class="dl-no-file">لا يوجد ملف متاح</span>
+              {% endif %}
+            </div>
+          {% endwith %}
+
+        </article>
+      {% empty %}
+        <div class="alert info" style="grid-column:1/-1">لا توجد مواد منشورة في هذه الفئة حاليًا.</div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}

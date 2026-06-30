@@ -1,0 +1,61 @@
+{% load static %}
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}صيف وصحة - مساعد{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/identity.css' %}?v=20260630-3">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% block splash %}
+    {% include "splash.html" %}
+  {% endblock %}
+  {% block smart_entry %}
+    {% include "smart_entry.html" %}
+  {% endblock %}
+  {% block header %}
+    {% include "header.html" %}
+  {% endblock %}
+  <main class="main">
+    {% if messages %}
+      <section class="section tight">
+        <div class="container">
+          {% for message in messages %}
+            <div class="alert info">{{ message }}</div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  {% block footer %}
+    {% include "footer.html" %}
+  {% endblock %}
+  {% block floating_actions %}
+    {% if not request.path|slice:":7" == "/admin/" and request.path != "/admin" and request.path != "/assistant/" and request.path != "/hero/" %}
+      <details class="now-float">
+        <summary>أنا الآن</summary>
+        <div class="now-panel">
+          <a href="{% url 'nearby' %}?type=health_center">أقرب مركز صحي</a>
+          <a href="{% url 'nearby' %}?type=walkway">أقرب ممشى</a>
+          <a href="{% url 'events:list' %}">أقرب فعالية</a>
+          <a href="{% url 'nearby' %}?type=awareness">نقطة توعوية</a>
+        </div>
+      </details>
+      <a class="doctor-float-link" href="{% url 'assistant' %}" aria-label="فتح الدكتور مساعد">
+        <span>اسألني الآن</span>
+        {% load static %}
+        <img src="{% static 'img/doctor.png' %}" alt="الدكتور مساعد">
+      </a>
+    {% endif %}
+  {% endblock %}
+  {% block mobile_nav %}
+    {% include "mobile_nav.html" %}
+  {% endblock %}
+  <script src="{% static 'js/splash.js' %}?v=20260630-3" defer></script>
+  <script src="{% static 'js/smart-entry.js' %}?v=20260630-3" defer></script>
+  <script src="{% static 'js/assistant.js' %}?v=20260630-3" defer></script>
+  <script src="{% static 'js/hero.js' %}?v=20260630-3" defer></script>
+</body>
+</html>

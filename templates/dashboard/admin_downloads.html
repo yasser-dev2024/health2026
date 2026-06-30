@@ -1,0 +1,191 @@
+{% extends "dashboard/admin_base.html" %}
+{% load static %}
+
+{% block title %}إدارة مكتبة التحميلات{% endblock %}
+{% block page_title_short %}التحميلات{% endblock %}
+{% block nav_downloads %}class="active"{% endblock %}
+
+{% block admin_main %}
+
+<!-- ===== STATS HEADER ===== -->
+<section class="admin-section">
+  <div class="admin-section-head gold">
+    <span>📥</span>
+    <div>
+      <h2>مكتبة التحميلات</h2>
+      <p>إدارة المواد التوعوية — إضافة وتعديل وترتيب ورفع ملفات مباشرة</p>
+    </div>
+  </div>
+  <div class="admin-section-body">
+    <div class="admin-card-grid">
+      <div class="admin-metric">
+        <span>إجمالي المواد</span>
+        <strong>{{ items.count }}</strong>
+        <small>{{ active_count }} نشط / {{ inactive_count }} مخفي</small>
+      </div>
+      <div class="admin-metric metric-green">
+        <span>إجمالي التحميلات</span>
+        <strong>{{ total_dl }}</strong>
+        <small>مجموع كل التحميلات المسجلة</small>
+      </div>
+      {% for v, data in type_counts.items %}
+        {% if data.count %}
+          <div class="admin-metric metric-teal">
+            <span>{{ data.label }}</span>
+            <strong>{{ data.count }}</strong>
+            <small>عدد مواد هذا النوع</small>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- Downloads Chart -->
+    {% if top_items %}
+    <div style="margin-top:1.25rem">
+      <div style="font-weight:900;color:#a97c00;margin-bottom:.75rem;font-size:.9rem">📊 أكثر المواد تحميلاً</div>
+      {% for item in top_items %}
+        <div class="chart-row">
+          <div class="chart-row-head">
+            <span>{{ item.title|truncatechars:40 }}</span>
+            <span>{{ item.download_count }} تحميل</span>
+          </div>
+          <div class="chart-track">
+            <span class="chart-fill chart-fill-gold" style="width:{% widthratio item.download_count max_dl 100 %}%"></span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ===== ADD / EDIT FORM ===== -->
+<section class="admin-section" id="form-section">
+  <div class="admin-section-head {% if editing %}gold{% endif %}">
+    <span>{% if editing %}✏️{% else %}＋{% endif %}</span>
+    <div>
+      <h2>{% if editing %}تعديل: {{ editing.title }}{% else %}إضافة مادة جديدة{% endif %}</h2>
+      <p>{% if editing %}عدّل البيانات ثم اضغط حفظ{% else %}أدخل بيانات المادة ثم ارفع الملف أو أدخل رابطاً خارجياً{% endif %}</p>
+    </div>
+  </div>
+  {% if not editing %}
+  <div class="admin-section-body">
+    <button class="btn" type="button" onclick="this.closest('.admin-section').querySelector('.dl-form-wrap').hidden=false;this.hidden=true">＋ إضافة مادة جديدة</button>
+  </div>
+  {% endif %}
+  <div class="dl-form-wrap admin-section-body" {% if not editing %}hidden{% endif %}>
+    <form method="post" enctype="multipart/form-data" action="{% if editing %}?edit={{ editing.id }}{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save">
+      {% if editing %}<input type="hidden" name="item_id" value="{{ editing.id }}">{% endif %}
+
+      <div class="form-grid-2">
+        {% for field in form %}
+          <div class="field {% if field.name in 'summary,file_url,thumbnail_url' %}full{% endif %}">
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+            {% for err in field.errors %}<small class="field-error">{{ err }}</small>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="alert info" style="margin-top:1rem">
+        <strong>ملاحظة:</strong> استخدم "رفع ملف من الجهاز" لرفع الملف مباشرة، أو "رابط الملف" لملف على موقع خارجي (Google Drive، وغيره).
+      </div>
+      <div class="actions-row" style="margin-top:1rem">
+        <button type="submit" class="btn">💾 حفظ</button>
+        {% if editing %}
+          <a class="btn secondary" href="{% url 'admin_downloads' %}">إلغاء</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ===== ITEMS CARDS ===== -->
+<section class="admin-section">
+  <div class="admin-section-head indigo">
+    <span>▦</span>
+    <div>
+      <h2>المواد المحفوظة ({{ items.count }})</h2>
+      <p>اضغط تعديل لتغيير البيانات، أو اضغط الأسهم لتغيير الترتيب</p>
+    </div>
+  </div>
+  <div class="admin-section-body">
+    <div class="mgmt-grid">
+      {% for item in items %}
+        <div class="mgmt-card {% if not item.active %}mgmt-card-inactive{% endif %}">
+
+          <!-- Thumbnail -->
+          <div class="mgmt-thumb">
+            {% with thumb=item.get_thumbnail_src %}
+              {% if thumb %}
+                <img src="{{ thumb }}" alt="{{ item.title }}">
+              {% else %}
+                <div class="mgmt-thumb-icon dl-thumb-{{ item.content_type }}">
+                  {% if item.content_type == 'pdf' %}PDF{% elif item.content_type == 'card' %}🃏{% elif item.content_type == 'post' %}📝{% else %}🔗{% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
+          </div>
+
+          <!-- Info -->
+          <div class="mgmt-card-body">
+            <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+              <span class="badge dl-badge-{{ item.content_type }}" style="font-size:.7rem">{{ item.get_content_type_display }}</span>
+              {% if not item.active %}<span class="badge warning" style="font-size:.7rem">مخفي</span>{% endif %}
+              <span style="margin-right:auto;color:#94a3b8;font-size:.72rem;font-weight:800">ترتيب: {{ item.order }}</span>
+            </div>
+            <h3 class="mgmt-title">{{ item.title }}</h3>
+            <p class="mgmt-desc">{{ item.summary|truncatechars:80 }}</p>
+            <div style="display:flex;align-items:center;gap:.5rem;margin-top:.35rem">
+              <span style="font-size:.75rem;color:#64748b;font-weight:800">{{ item.category }}</span>
+              <span style="font-size:.75rem;color:#15508A;font-weight:900;margin-right:auto">{{ item.download_count }} تحميل</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="mgmt-actions">
+            <!-- Order -->
+            <div class="mgmt-order-btns">
+              <form method="post" style="display:contents">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="order_up">
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button class="mgmt-order-btn" type="submit" title="أعلى">▲</button>
+              </form>
+              <form method="post" style="display:contents">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="order_down">
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button class="mgmt-order-btn" type="submit" title="أسفل">▼</button>
+              </form>
+            </div>
+
+            <a class="btn secondary small" href="?edit={{ item.id }}#form-section">✏️ تعديل</a>
+
+            <form method="post" style="display:contents">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="toggle">
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <button class="btn secondary small" type="submit">{% if item.active %}🙈 إخفاء{% else %}👁 إظهار{% endif %}</button>
+            </form>
+
+            <form method="post" style="display:contents" onsubmit="return confirm('حذف {{ item.title }}؟')">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <button class="btn secondary small" type="submit" style="color:#be123c">🗑 حذف</button>
+            </form>
+          </div>
+
+        </div>
+      {% empty %}
+        <div class="alert info" style="grid-column:1/-1">لا توجد مواد بعد. اضغط "إضافة مادة جديدة" أعلاه.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

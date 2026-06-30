@@ -1,0 +1,133 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* ── Quick-nav bar inside nav-sidebar ── */
+#admin-quicknav {
+  padding: 8px 10px 6px;
+  background: #1a3a5c;
+  border-bottom: 2px solid #2c5282;
+}
+#admin-quicknav .qn-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #90bfdd;
+  letter-spacing: .06em;
+  margin-bottom: 5px;
+}
+#admin-quicknav .qn-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+#admin-quicknav .qn-links a {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  background: rgba(255,255,255,.12);
+  color: #e2f0ff;
+  white-space: nowrap;
+}
+#admin-quicknav .qn-links a:hover { background: rgba(255,255,255,.28); color:#fff; }
+#admin-quicknav .qn-create {
+  display: block;
+  margin-top: 5px;
+  padding: 5px 10px;
+  background: #15508A;
+  color: #fff !important;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+  text-align: center;
+}
+#admin-quicknav .qn-create:hover { background: #1a6ab0; }
+
+/* ── compact sidebar rows ── */
+#nav-sidebar .module table tr th,
+#nav-sidebar .module table tr td {
+  padding-top: 3px; padding-bottom: 3px; font-size: 12.5px;
+}
+#nav-sidebar .module caption { padding: 5px 8px; font-size: 11px; }
+</style>
+{% endblock %}
+
+{% block nav-sidebar %}
+{{ block.super }}
+<script>
+(function () {
+  /* ── Force sidebar open always ── */
+  try { localStorage.setItem('django.admin.navSidebarIsOpen', 'true'); } catch(e){}
+
+  function init() {
+    /* Keep the toggle button state correct */
+    var btn = document.getElementById('toggle-nav-sidebar');
+    if (btn) {
+      var sidebar = document.getElementById('nav-sidebar');
+      if (sidebar) {
+        sidebar.classList.remove('collapsed');
+        document.body.classList.remove('nav-sidebar-collapsed');
+      }
+    }
+
+    /* Inject quick-nav above the search filter */
+    var nav_el = document.getElementById('nav-sidebar');
+    if (!nav_el) return;
+    var filter = document.getElementById('nav-filter');
+    if (!filter) return;
+    if (document.getElementById('admin-quicknav')) return;
+
+    var apps = [
+      { label: 'Assistant',   href: '/django-admin/assistant/' },
+      { label: 'Awareness',   href: '/django-admin/awareness/' },
+      { label: 'Auth',        href: '/django-admin/auth/' },
+      { label: 'Core',        href: '/django-admin/core/' },
+      { label: 'Dashboard',   href: '/django-admin/dashboard/' },
+      { label: 'Events',      href: '/django-admin/events/' },
+      { label: 'Hero',        href: '/django-admin/hero/' },
+      { label: 'Journey',     href: '/django-admin/journey/' },
+      { label: 'Locations',   href: '/django-admin/locations/' },
+      { label: 'Passport',    href: '/django-admin/passport/' },
+      { label: 'QR',          href: '/django-admin/qr/' },
+    ];
+
+    var box = document.createElement('div');
+    box.id = 'admin-quicknav';
+
+    var title = document.createElement('div');
+    title.className = 'qn-title';
+    title.textContent = 'انتقال سريع';
+    box.appendChild(title);
+
+    var links = document.createElement('div');
+    links.className = 'qn-links';
+    apps.forEach(function(app) {
+      var a = document.createElement('a');
+      a.href = app.href; a.textContent = app.label;
+      links.appendChild(a);
+    });
+    box.appendChild(links);
+
+    var create = document.createElement('a');
+    create.href = '/admin/qr-locations/#qr-create';
+    create.className = 'qn-create';
+    create.textContent = '＋ إنشاء رمز QR جديد';
+    box.appendChild(create);
+
+    nav_el.insertBefore(box, filter);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+{% endblock %}

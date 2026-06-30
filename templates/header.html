@@ -1,0 +1,35 @@
+{% load static %}
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="{% url 'core:home' %}">
+      <span class="brand-mark">
+        <img src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي">
+      </span>
+      <span class="brand-copy">
+        <strong>صيف وصحة</strong>
+        <small>مساعد عسير</small>
+      </span>
+    </a>
+    <nav class="nav" aria-label="التنقل الرئيسي">
+      <a href="{% url 'core:home' %}">الرئيسية</a>
+      <a href="{% url 'journey:start' %}">رحلتي</a>
+      <a href="{% url 'events:list' %}">الفعاليات</a>
+      <a href="{% url 'nearby' %}">القريبة</a>
+      <a href="{% url 'messages' %}">الرسائل</a>
+      <a href="{% url 'downloads' %}">التحميلات</a>
+      <a href="{% url 'assistant' %}">الدكتور مساعد</a>
+      <a href="{% url 'passport' %}">الجواز</a>
+      <a href="{% url 'hero' %}">بطل الصحة</a>
+    </nav>
+    <div class="header-actions" aria-label="أرقام التواصل المهمة">
+      <a class="call-pill support" href="tel:{{ site_settings.support_phone|default:'937' }}">
+        <span>استشارة</span>
+        <strong>{{ site_settings.support_phone|default:"937" }}</strong>
+      </a>
+      <a class="call-pill emergency" href="tel:{{ site_settings.emergency_phone|default:'997' }}">
+        <span>إسعاف</span>
+        <strong>{{ site_settings.emergency_phone|default:"997" }}</strong>
+      </a>
+    </div>
+  </div>
+</header>

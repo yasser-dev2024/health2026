@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}admin-shell{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block mobile_nav %}{% endblock %}
+{% block floating_actions %}{% endblock %}
+
+{% block content %}
+<div class="admin-mobile-top">
+  <div style="display:flex;align-items:center;gap:.75rem">
+    <span class="brand-mark"><img src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي"></span>
+    <strong>{% block page_title_short %}لوحة التحكم{% endblock %}</strong>
+    <a class="btn secondary small" style="margin-right:auto" href="{% url 'admin_dashboard' %}">الرئيسية</a>
+  </div>
+  <nav class="admin-mobile-nav">
+    <a href="{% url 'admin_dashboard' %}">▦</a>
+    <a href="{% url 'admin_downloads' %}">📥</a>
+    <a href="{% url 'admin_messages' %}">💬</a>
+    <a href="{% url 'admin_events' %}">📅</a>
+    <a href="{% url 'admin_locations' %}">📍</a>
+    <a href="{% url 'admin_qr_locations' %}#qr-create" style="background:#15508A;color:#fff;border-radius:8px;padding:.25rem .6rem;font-weight:900">QR＋</a>
+  </nav>
+</div>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <span class="brand-mark"><img src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي"></span>
+      <div>
+        <strong>لوحة التحكم</strong>
+        <div style="color:#15508A;font-size:.78rem;font-weight:900">بوابة الإدارة الشاملة</div>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <a href="{% url 'admin_dashboard' %}" {% block nav_home %}{% endblock %}>▦ المؤشرات العامة</a>
+      <a href="{% url 'admin_downloads' %}" {% block nav_downloads %}{% endblock %}>📥 مكتبة التحميلات</a>
+      <a href="{% url 'admin_messages' %}" {% block nav_messages %}{% endblock %}>💬 الرسائل التوعوية</a>
+      <a href="{% url 'admin_events' %}" {% block nav_events %}{% endblock %}>📅 الفعاليات الصحية</a>
+      <a href="{% url 'admin_locations' %}" {% block nav_locations %}{% endblock %}>📍 المواقع الصحية</a>
+      <div style="height:1px;background:#e2e8f0;margin:.5rem 0"></div>
+      <a href="{% url 'admin_qr_locations' %}#qr-create" {% block nav_qr_create %}{% endblock %} style="background:linear-gradient(135deg,#15508A,#283A83);color:#fff;border-radius:10px;padding:.65rem .9rem;font-weight:900;font-size:.88rem;display:flex;align-items:center;gap:.5rem">
+        <span style="font-size:1.1rem">QR</span> إنشاء رمز QR جديد
+      </a>
+      <a href="{% url 'admin_qr_locations' %}" {% block nav_qr %}{% endblock %} style="color:#15508A;font-weight:800">
+        ◫ إدارة رموز QR
+      </a>
+      <div style="height:1px;background:#e2e8f0;margin:.5rem 0"></div>
+      <a href="{% url 'admin_logout' %}" style="margin-top:auto;color:#be123c">تسجيل الخروج</a>
+    </nav>
+  </aside>
+
+  <main class="admin-content">
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert {% if msg.tags == 'error' %}danger{% else %}info{% endif %}" style="margin-bottom:1rem">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% block admin_main %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

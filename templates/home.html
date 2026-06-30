@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}صيف وصحة - مساعد{% endblock %}
+
+{% block content %}
+<section class="aseer-hero">
+  <div class="home-asir-strip" style="position:absolute;inset-inline:0;top:0;height:12px"></div>
+  <span class="home-gold-thread" style="position:absolute;top:22%;left:-18%;height:2px;width:82%;transform:rotate(-14deg)"></span>
+  <span class="home-gold-thread delay" style="position:absolute;bottom:28%;right:-22%;height:2px;width:92%;transform:rotate(18deg)"></span>
+
+  <div class="container aseer-hero-inner">
+    <div>
+      <span class="white-logo-card">
+        <img src="{% static 'img/cluster-white.png' %}" alt="تجمع عسير الصحي">
+      </span>
+
+      <div class="welcome-pill">
+        ✦
+        {% if qr_welcome_location %}
+          مرحبًا بك في صيف وصحة - {{ qr_welcome_location.name }}
+        {% elif qr_welcome_name %}
+          مرحبًا بك في صيف وصحة - {{ qr_welcome_name }}
+        {% else %}
+          منطقة عسير ترحب بك
+        {% endif %}
+      </div>
+
+      <h1 class="hero-title">{{ home_config.platform_name|default:"صيف وصحة - مساعد" }}</h1>
+      <p class="hero-tagline">{{ home_config.tagline|default:"مرشدك الصحي في صيف عسير" }}</p>
+      <p class="hero-intro">{{ home_config.intro|default:"منصة صحية وتوعوية تساعد زائر عسير على إنشاء خطة يومية آمنة، ومعرفة الفعاليات والمواقع القريبة، وجمع أختام جواز صحة عسير." }}</p>
+
+      <div class="signal-grid" style="margin-top:1.5rem">
+        <article class="signal-card">
+          <span>⌖</span>
+          <strong>طبيعة قريبة</strong>
+          <span>أبها والسودة وممشى الضباب</span>
+        </article>
+        <article class="signal-card">
+          <span>◇</span>
+          <strong>فرحة العائلة</strong>
+          <span>خيارات مناسبة للصغار والكبار</span>
+        </article>
+        <article class="signal-card">
+          <span>✓</span>
+          <strong>سلامة صحية</strong>
+          <span>تنبيه ومراكز قريبة عند الحاجة</span>
+        </article>
+      </div>
+    </div>
+
+    <form class="entry-card" method="post" action="{% url 'journey:start' %}">
+      {% csrf_token %}
+      <div class="home-asir-strip" style="height:12px"></div>
+      <div class="entry-card-body">
+        <div class="entry-card-head">
+          <div>
+            <p style="margin:0;color:#15508A;font-size:.9rem;font-weight:900">رحلتك الآن</p>
+            <h2>ابدأ من المكان المناسب لك</h2>
+          </div>
+          <span class="entry-icon">QR</span>
+        </div>
+
+        <div class="segment-field">
+          {{ journey_form.current_location.label_tag }}
+          {{ journey_form.current_location }}
+        </div>
+        <div class="segment-field">
+          {{ journey_form.age_group.label_tag }}
+          {{ journey_form.age_group }}
+        </div>
+        <div class="segment-field">
+          {{ journey_form.party_type.label_tag }}
+          <div class="radio-list">{{ journey_form.party_type }}</div>
+        </div>
+        <div class="segment-field">
+          {{ journey_form.visit_purpose.label_tag }}
+          {{ journey_form.visit_purpose }}
+        </div>
+        <div class="segment-field">
+          <label>{{ journey_form.has_health_condition }} توجد حالة صحية أو أعراض تحتاج انتباها</label>
+        </div>
+
+        <div class="alert info" style="margin-top:1rem">
+          <strong>اقتراحات فورية</strong>
+          <p style="margin:.35rem 0 0">موقع قريب، فعالية مناسبة، ومركز صحي أو نقطة توعوية حسب اختيارك.</p>
+        </div>
+
+        <button class="btn" style="width:100%;margin-top:1rem" type="submit">
+          {{ home_config.primary_button_label|default:"ابدأ رحلتك الصحية" }}
+        </button>
+
+        <div class="quick-button-grid" style="margin-top:1rem">
+          {% for button in quick_buttons %}
+            <a href="{{ button.url }}">{{ button.label }}</a>
+          {% empty %}
+            <a href="{% url 'assistant' %}">اسأل الدكتور مساعد</a>
+            <a href="{% url 'nearby' %}">قريب مني</a>
+          {% endfor %}
+          <a href="tel:937">{{ home_config.call937_label|default:"اتصال 937" }}</a>
+          <a href="tel:997">{{ home_config.emergency997_label|default:"طوارئ 997" }}</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container">
+    <div class="alert warning">
+      <strong>تنبيه صحي موسمي</strong>
+      <p style="margin:.35rem 0 0">{{ home_config.seasonal_alert|default:"اشرب الماء على دفعات، وخذ استراحة في الظل عند المشي أو حضور الفعاليات." }}</p>
+    </div>
+
+    {% if featured_events %}
+      {% with first_event=featured_events.0 %}
+        <a class="card" href="{% url 'events:list' %}" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1rem">
+          <span>
+            <span class="badge">فعالية اليوم</span>
+            <strong style="display:block;margin-top:.5rem;color:#0f172a;font-size:1.15rem">{{ first_event.title }}</strong>
+            <span style="color:#64748b;font-weight:700">{{ first_event.location }} - {{ first_event.time }}</span>
+          </span>
+          <span style="color:#15508A;font-size:1.4rem">←</span>
+        </a>
+      {% endwith %}
+    {% endif %}
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container">
+    <div class="page-title" style="padding-top:0">
+      <span class="eyebrow">أجواء عسير في رحلتك</span>
+      <h1>سياحة وفرح واطمئنان</h1>
+    </div>
+
+    <div class="feature-band">
+      <div class="feature-visual">
+        <div class="feature-visual-inner">
+          <div class="feature-visual-grid">
+            <span>↗</span>
+            <span>♡</span>
+            <span>✦</span>
+          </div>
+          <strong style="margin-top:1rem">مسار صحي · طبيعة عسير · فعاليات</strong>
+        </div>
+        <span class="home-gold-thread" style="position:absolute;top:2.5rem;left:-20%;height:2px;width:96%;transform:rotate(-12deg)"></span>
+        <span class="home-gold-thread delay" style="position:absolute;bottom:4rem;right:-22%;height:2px;width:92%;transform:rotate(16deg)"></span>
+      </div>
+      <div class="feature-copy">
+        <span class="badge warning">رحلة صيفية آمنة</span>
+        <h3>اختر وجهتك، وخذ تنبيهك الصحي، واستمتع بجمال عسير.</h3>
+        <p>من مرتفعات عسير إلى الممشى والفعاليات، كل خطوة أجمل عندما تكون رحلتك مريحة وآمنة.</p>
+        <div class="quick-stat-grid">
+          <div class="alert info" style="text-align:center;font-weight:900">سياحة</div>
+          <div class="alert info" style="text-align:center;font-weight:900">صحة</div>
+          <div class="alert info" style="text-align:center;font-weight:900">فرح</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:1rem">
+      <article class="moment-card">
+        <span class="moment-icon">⌖</span>
+        <h3>مرتفعات عسير</h3>
+        <p>اقتراحات تبدأ من موقعك وتراعي الوقت والازدحام.</p>
+      </article>
+      <article class="moment-card">
+        <span class="moment-icon">✦</span>
+        <h3>أجواء عائلية</h3>
+        <p>مسارات سهلة، نقاط جلوس، وخيارات مناسبة للأطفال.</p>
+      </article>
+      <article class="moment-card">
+        <span class="moment-icon">♡</span>
+        <h3>اطمئنان صحي</h3>
+        <p>إرشاد سريع لأقرب مركز صحي أو نقطة توعوية.</p>
+      </article>
+    </div>
+
+    <div class="grid" style="margin-top:1rem">
+      <a class="cta-card" style="background:linear-gradient(135deg,#15508A,#057590)" href="{% url 'assistant' %}">
+        <h2>اسأل الدكتور مساعد</h2>
+        <p>إجابة سريعة عن المركز الصحي، الطوارئ، الفعاليات، أو أقرب نقطة توعوية.</p>
+      </a>
+      <a class="cta-card light" href="{% url 'downloads' %}">
+        <h2>المواد التوعوية</h2>
+        <p>ملفات ورسائل مختصرة تساعدك قبل وأثناء الرحلة.</p>
+      </a>
+      <a class="cta-card" style="background:linear-gradient(135deg,#283A83,#D4AF37)" href="{% url 'hero' %}">
+        <h2>بطل الصحة في عسير</h2>
+        <p>اختبر معرفتك الصحية وتحدّ نفسك وعائلتك وشارك نتيجتك.</p>
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

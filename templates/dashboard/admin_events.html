@@ -1,0 +1,159 @@
+{% extends "dashboard/admin_base.html" %}
+
+{% block title %}إدارة الفعاليات الصحية{% endblock %}
+{% block page_title_short %}الفعاليات{% endblock %}
+{% block nav_events %}class="active"{% endblock %}
+
+{% block admin_main %}
+
+<section class="admin-section">
+  <div class="admin-section-head metric-teal" style="background:linear-gradient(135deg,#057590,#0e7490)">
+    <span>📅</span>
+    <div>
+      <h2>الفعاليات الصحية</h2>
+      <p>إضافة وتعديل وترتيب الفعاليات والأنشطة الصحية</p>
+    </div>
+  </div>
+  <div class="admin-section-body">
+    <div class="admin-card-grid">
+      <div class="admin-metric metric-teal">
+        <span>إجمالي الفعاليات</span>
+        <strong>{{ items.count }}</strong>
+        <small>{{ active_count }} نشطة / {{ inactive_count }} مخفية</small>
+      </div>
+      <div class="admin-metric metric-green">
+        <span>على الرئيسية</span>
+        <strong>{{ home_count }}</strong>
+        <small>فعاليات تظهر في الصفحة الرئيسية</small>
+      </div>
+      <div class="admin-metric">
+        <span>إجمالي الزيارات</span>
+        <strong>{{ total_visits }}</strong>
+        <small>زيارات لصفحات الفعاليات</small>
+      </div>
+    </div>
+
+    {% if cat_series or city_series %}
+    <div class="grid two" style="gap:.85rem;margin-top:1.25rem">
+      {% if cat_series %}
+      <article class="card" style="margin:0;padding:.85rem">
+        <h3 style="margin:0 0 .65rem;font-size:.9rem">📊 الفعاليات حسب التصنيف</h3>
+        {% with max_cat=cat_series.0.count %}
+          {% for row in cat_series %}
+            <div class="chart-row">
+              <div class="chart-row-head"><span>{{ row.category }}</span><span>{{ row.count }}</span></div>
+              <div class="chart-track"><span class="chart-fill chart-fill-teal" style="width:{% widthratio row.count max_cat 100 %}%"></span></div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+      </article>
+      {% endif %}
+      {% if city_series %}
+      <article class="card" style="margin:0;padding:.85rem">
+        <h3 style="margin:0 0 .65rem;font-size:.9rem">🏙 الفعاليات حسب المدينة</h3>
+        {% with max_city=city_series.0.count %}
+          {% for row in city_series %}
+            <div class="chart-row">
+              <div class="chart-row-head"><span>{{ row.city }}</span><span>{{ row.count }}</span></div>
+              <div class="chart-track"><span class="chart-fill chart-fill-green" style="width:{% widthratio row.count max_city 100 %}%"></span></div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+      </article>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if top_visited %}
+    <div style="margin-top:1.25rem">
+      <div style="font-weight:900;color:#057590;margin-bottom:.75rem;font-size:.9rem">🔥 أكثر الفعاليات زيارةً</div>
+      {% for item in top_visited %}
+        <div class="chart-row">
+          <div class="chart-row-head"><span>{{ item.title|truncatechars:40 }}</span><span>{{ item.visits }} زيارة</span></div>
+          <div class="chart-track"><span class="chart-fill" style="width:{% widthratio item.visits max_visits 100 %}%"></span></div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="admin-section" id="form-section">
+  <div class="admin-section-head {% if editing %}gold{% endif %}">
+    <span>{% if editing %}✏️{% else %}＋{% endif %}</span>
+    <div>
+      <h2>{% if editing %}تعديل: {{ editing.title }}{% else %}إضافة فعالية جديدة{% endif %}</h2>
+      <p>{% if editing %}عدّل البيانات ثم احفظ{% else %}أدخل تفاصيل الفعالية الصحية{% endif %}</p>
+    </div>
+  </div>
+  {% if not editing %}
+  <div class="admin-section-body">
+    <button class="btn" type="button" onclick="this.closest('.admin-section').querySelector('.dl-form-wrap').hidden=false;this.hidden=true">＋ إضافة فعالية جديدة</button>
+  </div>
+  {% endif %}
+  <div class="dl-form-wrap admin-section-body" {% if not editing %}hidden{% endif %}>
+    <form method="post" action="{% if editing %}?edit={{ editing.id }}{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save">
+      {% if editing %}<input type="hidden" name="item_id" value="{{ editing.id }}">{% endif %}
+      <div class="form-grid-2">
+        {% for field in form %}
+          <div class="field {% if field.name == 'description' %}full{% endif %}">
+            {{ field.label_tag }}{{ field }}
+            {% for err in field.errors %}<small class="field-error">{{ err }}</small>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="actions-row" style="margin-top:1rem">
+        <button type="submit" class="btn">💾 حفظ</button>
+        {% if editing %}<a class="btn secondary" href="{% url 'admin_events' %}">إلغاء</a>{% endif %}
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="admin-section">
+  <div class="admin-section-head indigo">
+    <span>▦</span>
+    <div><h2>الفعاليات المحفوظة ({{ items.count }})</h2><p>الترتيب يؤثر على ترتيب الظهور في الصفحة الرئيسية والقائمة</p></div>
+  </div>
+  <div class="admin-section-body">
+    <div class="mgmt-grid">
+      {% for item in items %}
+        <div class="mgmt-card {% if not item.active %}mgmt-card-inactive{% endif %}">
+          <div class="mgmt-thumb" style="background:linear-gradient(135deg,#E0F9FA,#CCEAF7);display:grid;place-items:center">
+            <div style="text-align:center;padding:.5rem">
+              <div style="font-size:1.5rem;font-weight:950;color:#15508A">{{ item.date }}</div>
+              <div style="font-size:.78rem;color:#057590;font-weight:900">{{ item.time }}</div>
+              <div style="font-size:.72rem;color:#334155;font-weight:800;margin-top:.25rem">{{ item.city }}</div>
+            </div>
+          </div>
+          <div class="mgmt-card-body">
+            <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;flex-wrap:wrap">
+              <span class="badge" style="font-size:.7rem;background:#057590;color:#fff">{{ item.category }}</span>
+              {% if item.show_on_home %}<span class="badge success" style="font-size:.7rem">الرئيسية</span>{% endif %}
+              {% if not item.active %}<span class="badge warning" style="font-size:.7rem">مخفي</span>{% endif %}
+              <span style="margin-right:auto;color:#94a3b8;font-size:.72rem;font-weight:800">{{ item.visits }} زيارة</span>
+            </div>
+            <h3 class="mgmt-title">{{ item.title }}</h3>
+            <p class="mgmt-desc">{{ item.location }} — {{ item.description|truncatechars:60 }}</p>
+          </div>
+          <div class="mgmt-actions">
+            <div class="mgmt-order-btns">
+              <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="order_up"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="mgmt-order-btn" type="submit">▲</button></form>
+              <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="order_down"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="mgmt-order-btn" type="submit">▼</button></form>
+            </div>
+            <a class="btn secondary small" href="?edit={{ item.id }}#form-section">✏️ تعديل</a>
+            <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="toggle_home"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="btn secondary small" type="submit">{% if item.show_on_home %}⬇ أزل من الرئيسية{% else %}⬆ أضف للرئيسية{% endif %}</button></form>
+            <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="btn secondary small" type="submit">{% if item.active %}🙈 إخفاء{% else %}👁 إظهار{% endif %}</button></form>
+            <form method="post" style="display:contents" onsubmit="return confirm('حذف هذه الفعالية؟')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="btn secondary small" type="submit" style="color:#be123c">🗑 حذف</button></form>
+          </div>
+        </div>
+      {% empty %}
+        <div class="alert info" style="grid-column:1/-1">لا توجد فعاليات بعد.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

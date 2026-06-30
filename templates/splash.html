@@ -1,0 +1,31 @@
+{% load static %}
+{% if not request.path|slice:":7" == "/admin/" and request.path != "/admin" and request.path != "/assistant/" %}
+<div class="splash-overlay" data-splash data-auto-close="true" aria-live="polite">
+  <img class="splash-bg" src="{% static 'img/asir-heritage-splash.png' %}" alt="" aria-hidden="true" draggable="false">
+  <div class="splash-gradient" aria-hidden="true"></div>
+
+  <div class="splash-center">
+    <section class="splash-panel" aria-label="شاشة الترحيب">
+      <div class="splash-logo-stage">
+        <span class="splash-logo-pulse" aria-hidden="true"></span>
+        <img class="splash-logo" src="{% static 'img/asir-white.png' %}" alt="عسير">
+      </div>
+
+      <div class="splash-welcome">
+        <span aria-hidden="true">✦</span>
+        <span>مرحبا</span>
+        <strong>1000</strong>
+      </div>
+
+      <h1>صيف وصحة</h1>
+      <p>أهلاً بك في عسير</p>
+
+      <div class="splash-progress" aria-label="جاري تجهيز التجربة">
+        <span></span>
+      </div>
+
+      <button class="splash-start" type="button" data-splash-close>ابدأ التجربة</button>
+    </section>
+  </div>
+</div>
+{% endif %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}إنشاء الخطة الصحية{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">الخطة اليومية</span>
+    <h1>إنشاء خطة صحية ليومك</h1>
+    <p>اختر ما يناسب زيارتك، وستظهر خطة مختصرة تراعي السلامة والمواقع القريبة.</p>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container grid two">
+    <form class="form-panel" method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="field{% if field.name == 'party_type' %} radio-list{% endif %}">
+          {{ field.label_tag }}
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <button type="submit">إنشاء الخطة</button>
+    </form>
+    <div class="card">
+      <h2>ماذا ستتضمن الخطة؟</h2>
+      <p>اقتراح فعالية مناسبة، موقع صحي قريب، ممشى أو نشاط آمن، وتنبيهات خاصة بالعمر أو الحالة الصحية.</p>
+      <div class="alert warning">عند وجود أعراض طارئة مثل ألم صدر أو صعوبة تنفس، اتصل مباشرة بـ 997 أو 937.</div>
+    </div>
+  </div>
+</section>
+{% endblock %}

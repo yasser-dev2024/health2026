@@ -1,0 +1,121 @@
+{% extends "dashboard/admin_base.html" %}
+
+{% block title %}إدارة الرسائل التوعوية{% endblock %}
+{% block page_title_short %}الرسائل{% endblock %}
+{% block nav_messages %}class="active"{% endblock %}
+
+{% block admin_main %}
+
+<section class="admin-section">
+  <div class="admin-section-head" style="background:linear-gradient(135deg,#6d28d9,#283A83)">
+    <span>💬</span>
+    <div>
+      <h2>الرسائل التوعوية</h2>
+      <p>إضافة وتعديل وترتيب الرسائل والنصائح الصحية</p>
+    </div>
+  </div>
+  <div class="admin-section-body">
+    <div class="admin-card-grid">
+      <div class="admin-metric metric-purple">
+        <span>إجمالي الرسائل</span>
+        <strong>{{ items.count }}</strong>
+        <small>{{ active_count }} نشطة / {{ inactive_count }} مخفية</small>
+      </div>
+      {% for cat in categories %}
+        <div class="admin-metric metric-teal">
+          <span>{{ cat.category }}</span>
+          <strong>{{ cat.count }}</strong>
+          <small>رسالة في هذا التصنيف</small>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if categories %}
+    <div style="margin-top:1.25rem">
+      <div style="font-weight:900;color:#6d28d9;margin-bottom:.75rem;font-size:.9rem">📊 الرسائل حسب التصنيف</div>
+      {% with max_cat=categories.0.count %}
+        {% for cat in categories %}
+          <div class="chart-row">
+            <div class="chart-row-head"><span>{{ cat.category }}</span><span>{{ cat.count }}</span></div>
+            <div class="chart-track"><span class="chart-fill chart-fill-purple" style="width:{% widthratio cat.count max_cat 100 %}%"></span></div>
+          </div>
+        {% endfor %}
+      {% endwith %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="admin-section" id="form-section">
+  <div class="admin-section-head {% if editing %}gold{% endif %}">
+    <span>{% if editing %}✏️{% else %}＋{% endif %}</span>
+    <div>
+      <h2>{% if editing %}تعديل: {{ editing.title }}{% else %}إضافة رسالة جديدة{% endif %}</h2>
+      <p>{% if editing %}عدّل البيانات ثم احفظ{% else %}أدخل بيانات الرسالة التوعوية{% endif %}</p>
+    </div>
+  </div>
+  {% if not editing %}
+  <div class="admin-section-body">
+    <button class="btn" type="button" onclick="this.closest('.admin-section').querySelector('.dl-form-wrap').hidden=false;this.hidden=true">＋ إضافة رسالة جديدة</button>
+  </div>
+  {% endif %}
+  <div class="dl-form-wrap admin-section-body" {% if not editing %}hidden{% endif %}>
+    <form method="post" action="{% if editing %}?edit={{ editing.id }}{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save">
+      {% if editing %}<input type="hidden" name="item_id" value="{{ editing.id }}">{% endif %}
+      <div class="form-grid-2">
+        {% for field in form %}
+          <div class="field {% if field.name == 'text' %}full{% endif %}">
+            {{ field.label_tag }}{{ field }}
+            {% for err in field.errors %}<small class="field-error">{{ err }}</small>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="actions-row" style="margin-top:1rem">
+        <button type="submit" class="btn">💾 حفظ</button>
+        {% if editing %}<a class="btn secondary" href="{% url 'admin_messages' %}">إلغاء</a>{% endif %}
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="admin-section">
+  <div class="admin-section-head indigo">
+    <span>▦</span>
+    <div><h2>الرسائل المحفوظة ({{ items.count }})</h2><p>اضغط الأسهم لترتيب الرسائل كما ستظهر للمستخدمين</p></div>
+  </div>
+  <div class="admin-section-body">
+    <div class="mgmt-grid">
+      {% for item in items %}
+        <div class="mgmt-card {% if not item.active %}mgmt-card-inactive{% endif %}">
+          <div class="mgmt-thumb" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);display:grid;place-items:center;font-size:2rem">
+            {{ item.icon|default:"💬" }}
+          </div>
+          <div class="mgmt-card-body">
+            <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+              <span class="badge" style="font-size:.7rem;background:#6d28d9;color:#fff">{{ item.category }}</span>
+              {% if not item.active %}<span class="badge warning" style="font-size:.7rem">مخفي</span>{% endif %}
+              <span style="margin-right:auto;color:#94a3b8;font-size:.72rem;font-weight:800">ترتيب: {{ item.order }}</span>
+            </div>
+            <h3 class="mgmt-title">{{ item.title }}</h3>
+            <p class="mgmt-desc">{{ item.text|truncatechars:90 }}</p>
+          </div>
+          <div class="mgmt-actions">
+            <div class="mgmt-order-btns">
+              <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="order_up"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="mgmt-order-btn" type="submit">▲</button></form>
+              <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="order_down"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="mgmt-order-btn" type="submit">▼</button></form>
+            </div>
+            <a class="btn secondary small" href="?edit={{ item.id }}#form-section">✏️ تعديل</a>
+            <form method="post" style="display:contents">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="btn secondary small" type="submit">{% if item.active %}🙈 إخفاء{% else %}👁 إظهار{% endif %}</button></form>
+            <form method="post" style="display:contents" onsubmit="return confirm('حذف هذه الرسالة؟')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="item_id" value="{{ item.id }}"><button class="btn secondary small" type="submit" style="color:#be123c">🗑 حذف</button></form>
+          </div>
+        </div>
+      {% empty %}
+        <div class="alert info" style="grid-column:1/-1">لا توجد رسائل بعد.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

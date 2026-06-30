@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}الخطة الصحية{% endblock %}
+
+{% block content %}
+<section class="page-title">
+  <div class="container">
+    <span class="eyebrow">نتيجة الخطة</span>
+    <h1>{% if plan %}{{ plan.title }}{% else %}لا توجد خطة بعد{% endif %}</h1>
+    <p>{% if plan %}{{ plan.summary }}{% else %}ابدأ من نموذج الرحلة لإنشاء خطة يومية مناسبة.{% endif %}</p>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="container">
+    {% if not plan %}
+      <a class="btn" href="{% url 'journey:start' %}">إنشاء خطة جديدة</a>
+    {% else %}
+      <div class="grid">
+        <article class="card">
+          <span class="badge {% if plan.risk_level == 'عاجل' %}warning{% else %}success{% endif %}">{{ plan.risk_level }}</span>
+          <h2>نصائح اليوم</h2>
+          <ul>
+            {% for tip in plan.tips %}
+              <li>{{ tip }}</li>
+            {% endfor %}
+          </ul>
+          <div class="actions-row">
+            {% for action in plan.actions %}
+              <a class="btn secondary small" href="{{ action.url }}">{{ action.label }}</a>
+            {% endfor %}
+          </div>
+        </article>
+        {% if plan.health_center %}
+          <article class="card">
+            <span class="badge">موقع صحي</span>
+            <h2>{{ plan.health_center.name }}</h2>
+            <p>{{ plan.health_center.address }}</p>
+            <p>{{ plan.health_center.availability }}</p>
+            <div class="actions-row">
+              {% if plan.health_center.phone %}<a class="btn secondary small" href="tel:{{ plan.health_center.phone }}">{{ plan.health_center.phone }}</a>{% endif %}
+              {% if plan.health_center.map_url %}<a class="btn secondary small" href="{{ plan.health_center.map_url }}">الخريطة</a>{% endif %}
+            </div>
+          </article>
+        {% endif %}
+        {% if plan.event %}
+          <article class="card">
+            <span class="badge">{{ plan.event.category }}</span>
+            <h2>{{ plan.event.title }}</h2>
+            <p>{{ plan.event.description }}</p>
+            <p>{{ plan.event.location }} - {{ plan.event.date }} {{ plan.event.time }}</p>
+          </article>
+        {% endif %}
+        {% if plan.walkway %}
+          <article class="card">
+            <span class="badge">ممشى</span>
+            <h2>{{ plan.walkway.name }}</h2>
+            <p>{{ plan.walkway.address }}</p>
+            <p>{{ plan.walkway.distance_label }}</p>
+            {% if plan.walkway.map_url %}<a class="btn secondary small" href="{{ plan.walkway.map_url }}">الخريطة</a>{% endif %}
+          </article>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
