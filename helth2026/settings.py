@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'campaigns',
     'core',
     'journey',
     'events',
@@ -155,8 +156,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = '/admin/'
+LOGIN_URL = '/django-admin/login/'
+LOGIN_REDIRECT_URL = '/django-admin/'
 LOGOUT_REDIRECT_URL = '/'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'

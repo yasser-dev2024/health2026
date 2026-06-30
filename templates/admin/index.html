@@ -1,0 +1,180 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static campaign_admin %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.campaign-admin-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, .8fr);
+  gap: 16px;
+  margin: 0 0 18px;
+}
+.campaign-admin-panel {
+  border: 1px solid var(--hairline-color);
+  border-radius: 8px;
+  background: var(--body-bg);
+  padding: 16px;
+}
+.qr-location-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0 0 16px;
+  background: #15508A;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(21, 80, 138, .18);
+}
+.qr-location-primary:hover,
+.qr-location-primary:visited {
+  color: #fff;
+}
+.qr-location-primary strong {
+  display: block;
+  font-size: 1.12rem;
+}
+.qr-location-primary span span {
+  display: block;
+  opacity: .9;
+  margin-top: 3px;
+}
+.qr-location-primary b {
+  border-radius: 6px;
+  background: rgba(255,255,255,.18);
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+.campaign-admin-panel h2 {
+  margin: 0 0 6px;
+  color: var(--body-fg);
+}
+.campaign-admin-panel p {
+  margin: 0;
+  color: var(--body-quiet-color);
+}
+.campaign-admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.campaign-admin-stat {
+  border-radius: 8px;
+  background: #15508A;
+  color: #fff;
+  padding: 12px;
+}
+.campaign-admin-stat strong {
+  display: block;
+  font-size: 1.4rem;
+}
+.campaign-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.campaign-admin-actions a {
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: #15508A;
+  color: #fff !important;
+  text-decoration: none;
+  font-weight: 700;
+}
+.campaign-admin-actions a.secondary {
+  background: transparent;
+  color: #15508A !important;
+  border: 1px solid #15508A;
+}
+.campaign-admin-actions a.primary-qr {
+  background: #15508A;
+  color: #fff !important;
+}
+.campaign-admin-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.campaign-admin-links a {
+  border: 1px solid var(--hairline-color);
+  border-radius: 8px;
+  padding: 12px;
+  text-decoration: none;
+  background: var(--body-bg);
+  font-weight: 800;
+}
+@media (max-width: 900px) {
+  .campaign-admin-hero,
+  .campaign-admin-stats,
+  .campaign-admin-links {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% campaign_admin_summary as campaign_summary %}
+<a class="qr-location-primary" href="{% url 'admin:qr_qrlocation_add' %}">
+  <span>
+    <strong>إنشاء باركود QR للمناطق</strong>
+    <span>زر ثابت وواضح لإنشاء باركود خاص بكل منطقة أو موقع، لا يُحذف عند أي تعديل.</span>
+  </span>
+  <b>+ إنشاء الآن</b>
+</a>
+
+<div class="campaign-admin-hero">
+  <section class="campaign-admin-panel">
+    <h2>إدارة الحملات</h2>
+    {% if campaign_summary.active_campaign %}
+      <p>الحملة النشطة: <strong>{{ campaign_summary.active_campaign.name }}</strong></p>
+    {% else %}
+      <p>لا توجد حملة نشطة حالياً. أنشئ حملة أو فعّل حملة قائمة لتشغيل الموقع.</p>
+    {% endif %}
+    <div class="campaign-admin-stats">
+      <div class="campaign-admin-stat"><span>الزوار</span><strong>{{ campaign_summary.active_stats.visitors }}</strong></div>
+      <div class="campaign-admin-stat"><span>مسحات QR</span><strong>{{ campaign_summary.active_stats.qr_scans }}</strong></div>
+      <div class="campaign-admin-stat"><span>التفاعلات</span><strong>{{ campaign_summary.active_stats.interactions }}</strong></div>
+      <div class="campaign-admin-stat"><span>فتح الدكتور مساعد</span><strong>{{ campaign_summary.active_stats.assistant_opens }}</strong></div>
+    </div>
+    <div class="campaign-admin-actions">
+      <a href="{% url 'admin:campaigns_campaign_changelist' %}">إدارة الحملات</a>
+      <a href="{% url 'admin:campaigns_campaign_add' %}">إنشاء حملة</a>
+      <a href="{% url 'admin:campaigns_campaignpage_changelist' %}" class="secondary">الصفحات الديناميكية</a>
+      <a href="{% url 'admin:campaigns_campaignbutton_changelist' %}" class="secondary">الأزرار الديناميكية</a>
+      <a href="{% url 'admin:campaigns_dashboard' %}" class="secondary">الإحصائيات الكاملة</a>
+    </div>
+  </section>
+  <section class="campaign-admin-panel">
+    <h2>باركود QR للمناطق</h2>
+    <p>عدد باركودات المناطق في الحملة النشطة: <strong>{{ campaign_summary.qr_locations_count }}</strong></p>
+    <div class="campaign-admin-actions">
+      <a class="primary-qr" href="{% url 'admin:qr_qrlocation_add' %}">إنشاء باركود QR للمناطق</a>
+      <a href="{% url 'admin:qr_qrlocation_changelist' %}" class="secondary">إدارة باركودات المناطق</a>
+      <a href="{% url 'admin:qr_qrscan_changelist' %}" class="secondary">سجل المسح</a>
+    </div>
+  </section>
+</div>
+
+<div id="content-main">
+  <section class="campaign-admin-panel">
+    <h2>اختصارات الإدارة</h2>
+    <p>تم إخفاء قائمة التطبيقات المكررة من وسط الصفحة؛ القائمة التفصيلية موجودة في الشريط الجانبي.</p>
+    <div class="campaign-admin-links">
+      <a href="{% url 'admin:awareness_awarenesscontent_changelist' %}">مكتبة التحميلات</a>
+      <a href="{% url 'admin:awareness_awarenessmessage_changelist' %}">الرسائل التوعوية</a>
+      <a href="{% url 'admin:events_healthevent_changelist' %}">الفعاليات الصحية</a>
+      <a href="{% url 'admin:locations_healthlocation_changelist' %}">المواقع الصحية والمناطق</a>
+      <a href="{% url 'admin:assistant_doctorassistantquestion_changelist' %}">أسئلة الدكتور مساعد</a>
+      <a href="{% url 'admin:hero_healthheroentry_changelist' %}">نتائج بطل الصحة</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

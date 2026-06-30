@@ -2,6 +2,13 @@ from django.db import models
 
 
 class HealthHeroQuestion(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='hero_questions',
+    )
     question = models.CharField(max_length=240)
     options = models.JSONField(default=list)
     correct_index = models.PositiveIntegerField(default=0)
@@ -22,6 +29,13 @@ class HealthHeroQuestion(models.Model):
 
 
 class HealthHeroEntry(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='hero_entries',
+    )
     visitor_id = models.CharField(max_length=64, db_index=True)
     participant_name = models.CharField(max_length=120, blank=True, default='')
     phone = models.CharField(max_length=30, blank=True, default='')

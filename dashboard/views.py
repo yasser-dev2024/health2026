@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from campaigns.services import campaign_queryset, campaign_stats, get_active_campaign
 from awareness.forms import AwarenessContentForm, AwarenessMessageForm
 from awareness.models import AwarenessContent, AwarenessMessage
 from events.forms import HealthEventForm
@@ -49,19 +50,20 @@ METRIC_LABELS = {
 
 @login_required
 def dashboard_view(request):
+    campaign = get_active_campaign()
     today = timezone.localdate()
     week_start = today - timezone.timedelta(days=6)
     month_start = today.replace(day=1)
 
     raw_metrics = {
-        'events': HealthEvent.objects.count(),
-        'locations': HealthLocation.objects.count(),
-        'messages': AwarenessMessage.objects.count(),
-        'downloads': AwarenessContent.objects.count(),
-        'journeys': JourneySubmission.objects.count(),
-        'qr_scans': QrScan.objects.count(),
-        'passport_users': VisitorPassport.objects.count(),
-        'hero_entries': HealthHeroEntry.objects.count(),
+        'events': campaign_queryset(HealthEvent.objects.all(), campaign=campaign).count(),
+        'locations': campaign_queryset(HealthLocation.objects.all(), campaign=campaign).count(),
+        'messages': campaign_queryset(AwarenessMessage.objects.all(), campaign=campaign).count(),
+        'downloads': campaign_queryset(AwarenessContent.objects.all(), campaign=campaign).count(),
+        'journeys': campaign_queryset(JourneySubmission.objects.all(), campaign=campaign).count(),
+        'qr_scans': campaign_queryset(QrScan.objects.all(), campaign=campaign).count(),
+        'passport_users': campaign_queryset(VisitorPassport.objects.all(), campaign=campaign).count(),
+        'hero_entries': campaign_queryset(HealthHeroEntry.objects.all(), campaign=campaign).count(),
     }
 
     metrics = [
@@ -75,39 +77,40 @@ def dashboard_view(request):
         for key, value in raw_metrics.items()
     ]
 
-    qr_today = QrLocationVisit.objects.filter(created_at__date=today).count()
-    qr_week = QrLocationVisit.objects.filter(created_at__date__gte=week_start).count()
-    qr_month = QrLocationVisit.objects.filter(created_at__date__gte=month_start).count()
-    qr_total = QrLocationVisit.objects.count()
-    qr_visitors = QrLocationVisit.objects.values('visitor_id').distinct().count()
+    qr_visits = campaign_queryset(QrLocationVisit.objects.all(), campaign=campaign)
+    qr_today = qr_visits.filter(created_at__date=today).count()
+    qr_week = qr_visits.filter(created_at__date__gte=week_start).count()
+    qr_month = qr_visits.filter(created_at__date__gte=month_start).count()
+    qr_total = qr_visits.count()
+    qr_visitors = qr_visits.values('visitor_id').distinct().count()
 
     top_downloads = list(
-        AwarenessContent.objects.filter(active=True, download_count__gt=0)
+        campaign_queryset(AwarenessContent.objects.filter(active=True, download_count__gt=0), campaign=campaign)
         .order_by('-download_count')[:6]
     )
-    total_downloads_count = AwarenessContent.objects.filter(active=True).aggregate(
+    total_downloads_count = campaign_queryset(AwarenessContent.objects.filter(active=True), campaign=campaign).aggregate(
         total=Sum('download_count')
     )['total'] or 0
 
     top_qr_locations = list(
-        QrLocation.objects.annotate(visit_total=Count('visits'))
+        campaign_queryset(QrLocation.objects.all(), campaign=campaign).annotate(visit_total=Count('visits'))
         .order_by('-visit_total')[:6]
     )
     chart_total = sum(loc.visit_total for loc in top_qr_locations) or 1
 
-    age_series = _choice_series(QrVisitorProfile, 'age_group', QrVisitorProfile.AGE_GROUP_CHOICES)
-    visitor_type_series = _choice_series(QrVisitorProfile, 'visitor_type', QrVisitorProfile.VISITOR_TYPE_CHOICES)
+    age_series = _choice_series(QrVisitorProfile, 'age_group', QrVisitorProfile.AGE_GROUP_CHOICES, campaign=campaign)
+    visitor_type_series = _choice_series(QrVisitorProfile, 'visitor_type', QrVisitorProfile.VISITOR_TYPE_CHOICES, campaign=campaign)
 
     # Downloads by type
     dl_type_series = []
     for value, label in AwarenessContent.TYPE_CHOICES:
-        count = AwarenessContent.objects.filter(content_type=value, active=True).count()
+        count = campaign_queryset(AwarenessContent.objects.filter(content_type=value, active=True), campaign=campaign).count()
         if count:
             dl_type_series.append({'label': label, 'count': count})
 
     # Events by category
     events_series = list(
-        HealthEvent.objects.values('category')
+        campaign_queryset(HealthEvent.objects.all(), campaign=campaign).values('category')
         .annotate(count=Count('id'))
         .order_by('-count')[:6]
     )
@@ -115,7 +118,7 @@ def dashboard_view(request):
     # Locations by type
     loc_series = []
     for value, label in HealthLocation.TYPE_CHOICES:
-        count = HealthLocation.objects.filter(location_type=value).count()
+        count = campaign_queryset(HealthLocation.objects.filter(location_type=value), campaign=campaign).count()
         if count:
             loc_series.append({'label': label, 'count': count})
 
@@ -128,22 +131,24 @@ def dashboard_view(request):
         {'label': 'إدارة QR', 'url': '/admin/qr-locations/', 'icon': 'QR'},
     ]
 
-    qr_locations_qs = QrLocation.objects.all()
+    qr_locations_qs = campaign_queryset(QrLocation.objects.all(), campaign=campaign)
     qr_locations_total = qr_locations_qs.count()
     qr_active_count = qr_locations_qs.filter(active=True).count()
     qr_inactive_count = qr_locations_qs.filter(active=False).count()
     qr_most_used = (
-        QrLocation.objects.annotate(visit_total=Count('visits'))
+        campaign_queryset(QrLocation.objects.all(), campaign=campaign).annotate(visit_total=Count('visits'))
         .order_by('-visit_total', '-scans_count')
         .first()
     )
-    qr_recent = QrLocation.objects.order_by('-created_at').first()
+    qr_recent = qr_locations_qs.order_by('-created_at').first()
 
     return render(request, 'dashboard/index.html', {
+        'active_campaign': campaign,
+        'campaign_stats': campaign_stats(campaign),
         'metrics': metrics,
         'admin_nav': admin_nav,
-        'recent_scans': QrScan.objects.select_related('qr_location', 'qr_item').order_by('-created_at')[:10],
-        'recent_logs': OperationLog.objects.select_related('user').order_by('-created_at')[:10],
+        'recent_scans': campaign_queryset(QrScan.objects.select_related('qr_location', 'qr_item'), campaign=campaign).order_by('-created_at')[:10],
+        'recent_logs': campaign_queryset(OperationLog.objects.select_related('user'), campaign=campaign).order_by('-created_at')[:10],
         'qr_stats': {
             'today': qr_today, 'week': qr_week,
             'month': qr_month, 'total': qr_total, 'visitors': qr_visitors,
@@ -167,9 +172,9 @@ def dashboard_view(request):
     })
 
 
-def _choice_series(model, field_name, choices):
+def _choice_series(model, field_name, choices, campaign=None):
     rows = (
-        model.objects.exclude(**{field_name: ''})
+        campaign_queryset(model.objects.exclude(**{field_name: ''}), campaign=campaign)
         .values(field_name)
         .annotate(total=Count('id'))
         .order_by()
@@ -205,14 +210,15 @@ def _location_usage_series(locations, total_scans):
 # ─────────────────────────────────────────
 @login_required
 def admin_downloads_view(request):
+    campaign = get_active_campaign()
     editing = None
     if request.GET.get('edit'):
-        editing = AwarenessContent.objects.filter(pk=request.GET['edit']).first()
+        editing = campaign_queryset(AwarenessContent.objects.filter(pk=request.GET['edit']), campaign=campaign).first()
 
     if request.method == 'POST':
         action = request.POST.get('action', 'save')
         item_id = request.POST.get('item_id')
-        item = AwarenessContent.objects.filter(pk=item_id).first() if item_id else None
+        item = campaign_queryset(AwarenessContent.objects.filter(pk=item_id), campaign=campaign).first() if item_id else None
 
         if action == 'delete' and item:
             title = item.title
@@ -228,7 +234,7 @@ def admin_downloads_view(request):
             return redirect('admin_downloads')
 
         if action == 'order_up' and item:
-            prev = AwarenessContent.objects.filter(order__lt=item.order).order_by('-order').first()
+            prev = campaign_queryset(AwarenessContent.objects.filter(order__lt=item.order), campaign=campaign).order_by('-order').first()
             if prev:
                 item.order, prev.order = prev.order, item.order
                 item.save(update_fields=['order'])
@@ -236,7 +242,7 @@ def admin_downloads_view(request):
             return redirect('admin_downloads')
 
         if action == 'order_down' and item:
-            nxt = AwarenessContent.objects.filter(order__gt=item.order).order_by('order').first()
+            nxt = campaign_queryset(AwarenessContent.objects.filter(order__gt=item.order), campaign=campaign).order_by('order').first()
             if nxt:
                 item.order, nxt.order = nxt.order, item.order
                 item.save(update_fields=['order'])
@@ -245,7 +251,11 @@ def admin_downloads_view(request):
 
         form = AwarenessContentForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
-            saved = form.save()
+            saved = form.save(commit=False)
+            if not saved.campaign_id:
+                saved.campaign = campaign
+            saved.save()
+            form.save_m2m()
             log_operation(request, 'التحميلات', f'حفظ: {saved.title}')
             django_messages.success(request, f'تم حفظ "{saved.title}"')
             return redirect('admin_downloads')
@@ -253,7 +263,7 @@ def admin_downloads_view(request):
     else:
         form = AwarenessContentForm(instance=editing)
 
-    items = AwarenessContent.objects.order_by('order', 'title')
+    items = campaign_queryset(AwarenessContent.objects.all(), campaign=campaign).order_by('order', 'title')
     total_dl = items.aggregate(t=Sum('download_count'))['t'] or 0
     type_counts = {}
     for v, lbl in AwarenessContent.TYPE_CHOICES:
@@ -279,14 +289,15 @@ def admin_downloads_view(request):
 # ─────────────────────────────────────────
 @login_required
 def admin_messages_view(request):
+    campaign = get_active_campaign()
     editing = None
     if request.GET.get('edit'):
-        editing = AwarenessMessage.objects.filter(pk=request.GET['edit']).first()
+        editing = campaign_queryset(AwarenessMessage.objects.filter(pk=request.GET['edit']), campaign=campaign).first()
 
     if request.method == 'POST':
         action = request.POST.get('action', 'save')
         item_id = request.POST.get('item_id')
-        item = AwarenessMessage.objects.filter(pk=item_id).first() if item_id else None
+        item = campaign_queryset(AwarenessMessage.objects.filter(pk=item_id), campaign=campaign).first() if item_id else None
 
         if action == 'delete' and item:
             title = item.title
@@ -301,7 +312,7 @@ def admin_messages_view(request):
             return redirect('admin_messages')
 
         if action == 'order_up' and item:
-            prev = AwarenessMessage.objects.filter(order__lt=item.order).order_by('-order').first()
+            prev = campaign_queryset(AwarenessMessage.objects.filter(order__lt=item.order), campaign=campaign).order_by('-order').first()
             if prev:
                 item.order, prev.order = prev.order, item.order
                 item.save(update_fields=['order'])
@@ -309,7 +320,7 @@ def admin_messages_view(request):
             return redirect('admin_messages')
 
         if action == 'order_down' and item:
-            nxt = AwarenessMessage.objects.filter(order__gt=item.order).order_by('order').first()
+            nxt = campaign_queryset(AwarenessMessage.objects.filter(order__gt=item.order), campaign=campaign).order_by('order').first()
             if nxt:
                 item.order, nxt.order = nxt.order, item.order
                 item.save(update_fields=['order'])
@@ -318,7 +329,11 @@ def admin_messages_view(request):
 
         form = AwarenessMessageForm(request.POST, instance=item)
         if form.is_valid():
-            saved = form.save()
+            saved = form.save(commit=False)
+            if not saved.campaign_id:
+                saved.campaign = campaign
+            saved.save()
+            form.save_m2m()
             log_operation(request, 'الرسائل', f'حفظ: {saved.title}')
             django_messages.success(request, f'تم حفظ "{saved.title}"')
             return redirect('admin_messages')
@@ -326,7 +341,7 @@ def admin_messages_view(request):
     else:
         form = AwarenessMessageForm(instance=editing)
 
-    items = AwarenessMessage.objects.order_by('order', 'id')
+    items = campaign_queryset(AwarenessMessage.objects.all(), campaign=campaign).order_by('order', 'id')
     categories = list(items.values('category').annotate(count=Count('id')).order_by('-count'))
 
     return render(request, 'dashboard/admin_messages.html', {
@@ -344,14 +359,15 @@ def admin_messages_view(request):
 # ─────────────────────────────────────────
 @login_required
 def admin_events_view(request):
+    campaign = get_active_campaign()
     editing = None
     if request.GET.get('edit'):
-        editing = HealthEvent.objects.filter(pk=request.GET['edit']).first()
+        editing = campaign_queryset(HealthEvent.objects.filter(pk=request.GET['edit']), campaign=campaign).first()
 
     if request.method == 'POST':
         action = request.POST.get('action', 'save')
         item_id = request.POST.get('item_id')
-        item = HealthEvent.objects.filter(pk=item_id).first() if item_id else None
+        item = campaign_queryset(HealthEvent.objects.filter(pk=item_id), campaign=campaign).first() if item_id else None
 
         if action == 'delete' and item:
             title = item.title
@@ -371,7 +387,7 @@ def admin_events_view(request):
             return redirect('admin_events')
 
         if action == 'order_up' and item:
-            prev = HealthEvent.objects.filter(order__lt=item.order).order_by('-order').first()
+            prev = campaign_queryset(HealthEvent.objects.filter(order__lt=item.order), campaign=campaign).order_by('-order').first()
             if prev:
                 item.order, prev.order = prev.order, item.order
                 item.save(update_fields=['order'])
@@ -379,7 +395,7 @@ def admin_events_view(request):
             return redirect('admin_events')
 
         if action == 'order_down' and item:
-            nxt = HealthEvent.objects.filter(order__gt=item.order).order_by('order').first()
+            nxt = campaign_queryset(HealthEvent.objects.filter(order__gt=item.order), campaign=campaign).order_by('order').first()
             if nxt:
                 item.order, nxt.order = nxt.order, item.order
                 item.save(update_fields=['order'])
@@ -388,7 +404,11 @@ def admin_events_view(request):
 
         form = HealthEventForm(request.POST, instance=item)
         if form.is_valid():
-            saved = form.save()
+            saved = form.save(commit=False)
+            if not saved.campaign_id:
+                saved.campaign = campaign
+            saved.save()
+            form.save_m2m()
             log_operation(request, 'الفعاليات', f'حفظ: {saved.title}')
             django_messages.success(request, f'تم حفظ "{saved.title}"')
             return redirect('admin_events')
@@ -396,7 +416,7 @@ def admin_events_view(request):
     else:
         form = HealthEventForm(instance=editing)
 
-    items = HealthEvent.objects.order_by('order', 'date', 'time')
+    items = campaign_queryset(HealthEvent.objects.all(), campaign=campaign).order_by('order', 'date', 'time')
     total_visits = items.aggregate(t=Sum('visits'))['t'] or 0
     cat_series = list(items.values('category').annotate(count=Count('id')).order_by('-count')[:6])
     city_series = list(items.values('city').annotate(count=Count('id')).order_by('-count')[:6])
@@ -423,14 +443,15 @@ def admin_events_view(request):
 # ─────────────────────────────────────────
 @login_required
 def admin_locations_view(request):
+    campaign = get_active_campaign()
     editing = None
     if request.GET.get('edit'):
-        editing = HealthLocation.objects.filter(pk=request.GET['edit']).first()
+        editing = campaign_queryset(HealthLocation.objects.filter(pk=request.GET['edit']), campaign=campaign).first()
 
     if request.method == 'POST':
         action = request.POST.get('action', 'save')
         item_id = request.POST.get('item_id')
-        item = HealthLocation.objects.filter(pk=item_id).first() if item_id else None
+        item = campaign_queryset(HealthLocation.objects.filter(pk=item_id), campaign=campaign).first() if item_id else None
 
         if action == 'delete' and item:
             name = item.name
@@ -445,7 +466,7 @@ def admin_locations_view(request):
             return redirect('admin_locations')
 
         if action == 'order_up' and item:
-            prev = HealthLocation.objects.filter(order__lt=item.order).order_by('-order').first()
+            prev = campaign_queryset(HealthLocation.objects.filter(order__lt=item.order), campaign=campaign).order_by('-order').first()
             if prev:
                 item.order, prev.order = prev.order, item.order
                 item.save(update_fields=['order'])
@@ -453,7 +474,7 @@ def admin_locations_view(request):
             return redirect('admin_locations')
 
         if action == 'order_down' and item:
-            nxt = HealthLocation.objects.filter(order__gt=item.order).order_by('order').first()
+            nxt = campaign_queryset(HealthLocation.objects.filter(order__gt=item.order), campaign=campaign).order_by('order').first()
             if nxt:
                 item.order, nxt.order = nxt.order, item.order
                 item.save(update_fields=['order'])
@@ -462,7 +483,11 @@ def admin_locations_view(request):
 
         form = HealthLocationForm(request.POST, instance=item)
         if form.is_valid():
-            saved = form.save()
+            saved = form.save(commit=False)
+            if not saved.campaign_id:
+                saved.campaign = campaign
+            saved.save()
+            form.save_m2m()
             log_operation(request, 'المواقع', f'حفظ: {saved.name}')
             django_messages.success(request, f'تم حفظ "{saved.name}"')
             return redirect('admin_locations')
@@ -470,7 +495,7 @@ def admin_locations_view(request):
     else:
         form = HealthLocationForm(instance=editing)
 
-    items = HealthLocation.objects.order_by('order', 'city', 'name')
+    items = campaign_queryset(HealthLocation.objects.all(), campaign=campaign).order_by('order', 'city', 'name')
     type_series = []
     for v, lbl in HealthLocation.TYPE_CHOICES:
         count = items.filter(location_type=v).count()

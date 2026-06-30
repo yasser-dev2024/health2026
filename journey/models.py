@@ -2,6 +2,13 @@ from django.db import models
 
 
 class JourneySubmission(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='journey_submissions',
+    )
     visitor_id = models.CharField(max_length=64, db_index=True)
     current_location = models.CharField(max_length=80)
     age_group = models.CharField(max_length=30)

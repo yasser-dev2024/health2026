@@ -21,12 +21,17 @@ from django.urls import include, path
 
 from assistant import views as assistant_views
 from awareness import views as awareness_views
+from campaigns import views as campaign_views
 from dashboard import views as dashboard_views
 from hero import views as hero_views
 from journey import views as journey_views
 from locations import views as location_views
 from passport import views as passport_views
 from qr import views as qr_views
+
+admin.site.site_header = 'لوحة إدارة صيف وصحة'
+admin.site.site_title = 'إدارة صيف وصحة'
+admin.site.index_title = 'لوحة الإدارة'
 
 urlpatterns = [
     path('', include('core.urls')),
@@ -39,6 +44,7 @@ urlpatterns = [
     path('assistant/', assistant_views.assistant_view, name='assistant'),
     path('nearby/', location_views.nearby_view, name='nearby'),
     path('hero/', hero_views.hero_view, name='hero'),
+    path('pages/<slug:page_key>/', campaign_views.campaign_page_view, name='campaign_page'),
     path('qr/profile/', qr_views.qr_profile_view, name='qr_profile'),
     path('qr/<slug:slug>/', qr_views.qr_location_view, name='qr_location'),
     path('qr-item/<int:item_id>/', qr_views.qr_item_view, name='qr_item'),

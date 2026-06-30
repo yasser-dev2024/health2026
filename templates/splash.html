@@ -1,14 +1,26 @@
 {% load static %}
 {% if not request.path|slice:":7" == "/admin/" and request.path != "/admin" and request.path != "/assistant/" %}
 <div class="splash-overlay" data-splash data-auto-close="true" aria-live="polite">
-  <img class="splash-bg" src="{% static 'img/asir-heritage-splash.png' %}" alt="" aria-hidden="true" draggable="false">
+  {% if active_campaign.splash_image %}
+    <img class="splash-bg" src="{{ active_campaign.splash_image.url }}" alt="" aria-hidden="true" draggable="false">
+  {% elif active_campaign.splash_static_path %}
+    <img class="splash-bg" src="{% static active_campaign.splash_static_path %}" alt="" aria-hidden="true" draggable="false">
+  {% else %}
+    <img class="splash-bg" src="{% static 'img/asir-heritage-splash.png' %}" alt="" aria-hidden="true" draggable="false">
+  {% endif %}
   <div class="splash-gradient" aria-hidden="true"></div>
 
   <div class="splash-center">
     <section class="splash-panel" aria-label="شاشة الترحيب">
       <div class="splash-logo-stage">
         <span class="splash-logo-pulse" aria-hidden="true"></span>
-        <img class="splash-logo" src="{% static 'img/asir-white.png' %}" alt="عسير">
+        {% if active_campaign.logo %}
+          <img class="splash-logo" src="{{ active_campaign.logo.url }}" alt="{{ active_campaign.name }}">
+        {% elif active_campaign.logo_static_path %}
+          <img class="splash-logo" src="{% static active_campaign.logo_static_path %}" alt="{{ active_campaign.name }}">
+        {% else %}
+          <img class="splash-logo" src="{% static 'img/asir-white.png' %}" alt="عسير">
+        {% endif %}
       </div>
 
       <div class="splash-welcome">
@@ -17,8 +29,8 @@
         <strong>1000</strong>
       </div>
 
-      <h1>صيف وصحة</h1>
-      <p>أهلاً بك في عسير</p>
+      <h1>{{ active_campaign.name|default:"صيف وصحة" }}</h1>
+      <p>{{ active_campaign.welcome_text|default:"أهلاً بك في عسير" }}</p>
 
       <div class="splash-progress" aria-label="جاري تجهيز التجربة">
         <span></span>

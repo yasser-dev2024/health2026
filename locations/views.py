@@ -1,11 +1,14 @@
 from django.shortcuts import render
 
+from campaigns.services import campaign_queryset, get_active_campaign
+
 from .models import HealthLocation
 
 
 def nearby_view(request):
+    campaign = get_active_campaign()
     selected_type = request.GET.get('type', '')
-    locations = HealthLocation.objects.filter(active=True).order_by('order', 'city', 'name')
+    locations = campaign_queryset(HealthLocation.objects.filter(active=True), campaign=campaign).order_by('order', 'city', 'name')
     if selected_type:
         locations = locations.filter(location_type=selected_type)
 

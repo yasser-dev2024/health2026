@@ -4,8 +4,15 @@ from core.validators import validate_safe_url
 
 
 class QrLocation(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='qr_locations',
+    )
     name = models.CharField(max_length=140)
-    slug = models.SlugField(max_length=90, unique=True)
+    slug = models.SlugField(max_length=90, db_index=True)
     description = models.TextField(blank=True)
     category = models.CharField(max_length=80, default='موقع')
     city = models.CharField(max_length=80, default='أبها')
@@ -25,6 +32,7 @@ class QrLocation(models.Model):
 
     class Meta:
         ordering = ['city', 'name']
+        unique_together = ('campaign', 'slug')
         verbose_name = 'موقع QR'
         verbose_name_plural = 'مواقع QR'
 
@@ -33,6 +41,13 @@ class QrLocation(models.Model):
 
 
 class QrItem(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='qr_items',
+    )
     title = models.CharField(max_length=140)
     item_type = models.CharField(max_length=80, default='عنصر')
     description = models.TextField(blank=True)
@@ -66,6 +81,13 @@ class QrScan(models.Model):
         (TYPE_ITEM, 'عنصر'),
     ]
 
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='qr_scans',
+    )
     visitor_id = models.CharField(max_length=64, db_index=True)
     qr_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     path = models.CharField(max_length=240)
@@ -84,6 +106,13 @@ class QrScan(models.Model):
 
 
 class QrVisit(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='qr_item_visits',
+    )
     visitor_id = models.CharField(max_length=64, db_index=True)
     qr_item = models.ForeignKey(QrItem, on_delete=models.CASCADE, related_name='visits')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -98,6 +127,13 @@ class QrVisit(models.Model):
 
 
 class QrLocationVisit(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='qr_location_visits',
+    )
     visitor_id = models.CharField(max_length=64, db_index=True)
     qr_location = models.ForeignKey(QrLocation, on_delete=models.CASCADE, related_name='visits')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -158,7 +194,14 @@ class QrVisitorProfile(models.Model):
         (SUN_PROTECTION, 'الوقاية من الشمس'),
     ]
 
-    visitor_id = models.CharField(max_length=64, unique=True)
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='qr_visitor_profiles',
+    )
+    visitor_id = models.CharField(max_length=64, db_index=True)
     qr_location = models.ForeignKey(
         QrLocation,
         null=True,
@@ -175,6 +218,7 @@ class QrVisitorProfile(models.Model):
 
     class Meta:
         ordering = ['-updated_at']
+        unique_together = ('campaign', 'visitor_id')
         verbose_name = 'إحصائية زائر QR'
         verbose_name_plural = 'إحصائيات زوار QR'
 

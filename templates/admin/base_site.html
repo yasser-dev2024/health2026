@@ -1,6 +1,21 @@
 {% extends "admin/base.html" %}
 {% load i18n %}
 
+{% block title %}لوحة إدارة صيف وصحة{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">لوحة إدارة صيف وصحة</a></div>
+{% endblock %}
+
+{% block userlinks %}
+  <a href="/" target="_blank">عرض الموقع</a> /
+  <a href="{% url 'admin:password_change' %}">تغيير كلمة المرور</a> /
+  <form id="logout-form" method="post" action="{% url 'admin:logout' %}" style="display:inline">
+    {% csrf_token %}
+    <button type="submit">تسجيل الخروج</button>
+  </form>
+{% endblock %}
+
 {% block extrastyle %}
 {{ block.super }}
 <style>
@@ -83,18 +98,183 @@
     if (!filter) return;
     if (document.getElementById('admin-quicknav')) return;
 
+    var labels = {
+      'ASSISTANT': 'الدكتور مساعد',
+      'Assistant': 'الدكتور مساعد',
+      'AWARENESS': 'التوعية',
+      'Awareness': 'التوعية',
+      'AUTHENTICATION AND AUTHORIZATION': 'المستخدمون والصلاحيات',
+      'Authentication and Authorization': 'المستخدمون والصلاحيات',
+      'Auth': 'الصلاحيات',
+      'CAMPAIGN MANAGEMENT': 'إدارة الحملات',
+      'Campaign Management': 'إدارة الحملات',
+      'Campaign Buttons': 'أزرار الحملات',
+      'Campaign Interactions': 'تفاعلات الحملات',
+      'Campaign Pages': 'صفحات الحملات',
+      'CORE': 'الإعدادات العامة',
+      'Core': 'الإعدادات',
+      'DASHBOARD': 'سجل الإدارة',
+      'Dashboard': 'سجل الإدارة',
+      'EVENTS': 'الفعاليات',
+      'Events': 'الفعاليات',
+      'HERO': 'بطل الصحة',
+      'Hero': 'بطل الصحة',
+      'JOURNEY': 'الرحلة',
+      'Journey': 'الرحلة',
+      'LOCATIONS': 'المناطق والمواقع',
+      'Locations': 'المناطق',
+      'PASSPORT': 'الجواز',
+      'Passport': 'الجواز',
+      'QR': 'باركود QR',
+      'Groups': 'المجموعات',
+      'Users': 'المستخدمون',
+      'Keyword answers': 'الكلمات المفتاحية والإجابات',
+      'Doctor assistant questions': 'أسئلة الدكتور مساعد',
+      'Awareness contents': 'مكتبة التحميلات',
+      'Awareness messages': 'الرسائل التوعوية',
+      'Health events': 'الفعاليات الصحية',
+      'Health locations': 'المواقع الصحية والمناطق',
+      'Journey submissions': 'إجابات الرحلات',
+      'Passport stamps': 'أختام الجواز',
+      'Passport achievements': 'إنجازات الجواز',
+      'Visitor passports': 'جوازات الزوار',
+      'QR locations': 'باركود QR للمناطق',
+      'QR items': 'عناصر QR',
+      'QR scans': 'مسحات QR',
+      'QR visits': 'زيارات عناصر QR',
+      'QR location visits': 'زيارات مناطق QR',
+      'QR visitor profiles': 'إحصائيات زوار QR',
+      'Health hero questions': 'أسئلة بطل الصحة',
+      'Health hero entries': 'نتائج بطل الصحة',
+      'Operation logs': 'سجل العمليات الإدارية',
+      'Home configs': 'إعدادات الصفحة الرئيسية',
+      'Home quick buttons': 'الأزرار السريعة',
+      'Feature flags': 'تفعيل وتعطيل الميزات',
+      'General settings': 'الإعدادات العامة',
+      'Smart entry configs': 'إعدادات الدخول الذكي',
+      'Name': 'الاسم',
+      'name': 'الاسم',
+      'Slug': 'المعرّف',
+      'slug': 'المعرّف',
+      'Campaign': 'الحملة',
+      'campaign': 'الحملة',
+      'Status': 'الحالة',
+      'status': 'الحالة',
+      'Is active': 'نشطة',
+      'is active': 'نشطة',
+      'Updated at': 'آخر تحديث',
+      'updated at': 'آخر تحديث',
+      'Created at': 'تاريخ الإنشاء',
+      'created at': 'تاريخ الإنشاء',
+      'Archived at': 'تاريخ الأرشفة',
+      'archived at': 'تاريخ الأرشفة',
+      'Title': 'العنوان',
+      'title': 'العنوان',
+      'Description': 'الوصف',
+      'description': 'الوصف',
+      'Category': 'التصنيف',
+      'category': 'التصنيف',
+      'City': 'المدينة',
+      'city': 'المدينة',
+      'Order': 'الترتيب',
+      'order': 'الترتيب',
+      'Active': 'نشط',
+      'active': 'نشط',
+      'Key': 'المفتاح',
+      'key': 'المفتاح',
+      'Label': 'التسمية',
+      'label': 'التسمية',
+      'Icon': 'الأيقونة',
+      'icon': 'الأيقونة',
+      'Color': 'اللون',
+      'color': 'اللون',
+      'Action type': 'نوع الإجراء',
+      'action type': 'نوع الإجراء',
+      'Target page': 'الصفحة المستهدفة',
+      'target page': 'الصفحة المستهدفة',
+      'Url': 'الرابط',
+      'url': 'الرابط',
+      'Deep link': 'الرابط العميق',
+      'deep link': 'الرابط العميق',
+      'Event type': 'نوع التفاعل',
+      'event type': 'نوع التفاعل',
+      'Visitor id': 'معرف الزائر',
+      'visitor id': 'معرف الزائر',
+      'Path': 'المسار',
+      'path': 'المسار',
+      'Metadata': 'بيانات إضافية',
+      'metadata': 'بيانات إضافية',
+      'Content type': 'نوع المحتوى',
+      'content type': 'نوع المحتوى',
+      'Download count': 'عدد التحميلات',
+      'download count': 'عدد التحميلات',
+      'Question': 'السؤال',
+      'question': 'السؤال',
+      'Answer': 'الإجابة',
+      'answer': 'الإجابة',
+      'Keywords': 'الكلمات المفتاحية',
+      'keywords': 'الكلمات المفتاحية',
+      'Usage count': 'عدد الاستخدام',
+      'usage count': 'عدد الاستخدام',
+      'Last used at': 'آخر استخدام',
+      'last used at': 'آخر استخدام',
+      'Location type': 'نوع الموقع',
+      'location type': 'نوع الموقع',
+      'Availability': 'التوفر',
+      'availability': 'التوفر',
+      'Date': 'التاريخ',
+      'date': 'التاريخ',
+      'Time': 'الوقت',
+      'time': 'الوقت',
+      'Show on home': 'عرض في الرئيسية',
+      'show on home': 'عرض في الرئيسية',
+      'Points': 'النقاط',
+      'points': 'النقاط',
+      'Scans count': 'عدد المسحات',
+      'scans count': 'عدد المسحات',
+      'Badge label': 'وسام الشهادة',
+      'badge label': 'وسام الشهادة',
+      'Participant name': 'اسم المشارك',
+      'participant name': 'اسم المشارك',
+      'Phone': 'الجوال',
+      'phone': 'الجوال',
+      'Total': 'الإجمالي',
+      'total': 'الإجمالي',
+      'Qr type': 'نوع QR',
+      'qr type': 'نوع QR',
+      'Qr item': 'عنصر QR',
+      'qr item': 'عنصر QR',
+      'Qr location': 'منطقة QR',
+      'qr location': 'منطقة QR',
+      'Visitor type': 'نوع الزائر',
+      'visitor type': 'نوع الزائر',
+      'Party type': 'نوع الزيارة',
+      'party type': 'نوع الزيارة',
+      'Age group': 'الفئة العمرية',
+      'age group': 'الفئة العمرية',
+      'Health topic': 'الموضوع الصحي',
+      'health topic': 'الموضوع الصحي',
+      'Stats': 'الإحصائيات',
+      'Copy': 'نسخ',
+      'Add': 'إضافة',
+      'Change': 'تعديل',
+      'Delete': 'حذف',
+      'Save': 'حفظ',
+      'Save and add another': 'حفظ وإضافة آخر',
+      'Save and continue editing': 'حفظ ومتابعة التعديل'
+    };
+
     var apps = [
-      { label: 'Assistant',   href: '/django-admin/assistant/' },
-      { label: 'Awareness',   href: '/django-admin/awareness/' },
-      { label: 'Auth',        href: '/django-admin/auth/' },
-      { label: 'Core',        href: '/django-admin/core/' },
-      { label: 'Dashboard',   href: '/django-admin/dashboard/' },
-      { label: 'Events',      href: '/django-admin/events/' },
-      { label: 'Hero',        href: '/django-admin/hero/' },
-      { label: 'Journey',     href: '/django-admin/journey/' },
-      { label: 'Locations',   href: '/django-admin/locations/' },
-      { label: 'Passport',    href: '/django-admin/passport/' },
-      { label: 'QR',          href: '/django-admin/qr/' },
+      { label: 'الدكتور مساعد', href: '/django-admin/assistant/' },
+      { label: 'التوعية', href: '/django-admin/awareness/' },
+      { label: 'الصلاحيات', href: '/django-admin/auth/' },
+      { label: 'الحملات', href: '/django-admin/campaigns/' },
+      { label: 'الإعدادات', href: '/django-admin/core/' },
+      { label: 'الفعاليات', href: '/django-admin/events/' },
+      { label: 'المناطق', href: '/django-admin/locations/' },
+      { label: 'الجواز', href: '/django-admin/passport/' },
+      { label: 'بطل الصحة', href: '/django-admin/hero/' },
+      { label: 'باركود QR', href: '/django-admin/qr/' },
     ];
 
     var box = document.createElement('div');
@@ -115,12 +295,34 @@
     box.appendChild(links);
 
     var create = document.createElement('a');
-    create.href = '/admin/qr-locations/#qr-create';
+    create.href = '/django-admin/qr/qrlocation/add/';
     create.className = 'qn-create';
-    create.textContent = '＋ إنشاء رمز QR جديد';
+    create.textContent = '+ إنشاء باركود QR للمناطق';
     box.appendChild(create);
 
     nav_el.insertBefore(box, filter);
+
+    function translateLabel(node) {
+      var text = (node.textContent || '').trim();
+      if (labels[text]) {
+        node.textContent = labels[text];
+      }
+    }
+    nav_el.querySelectorAll('caption a, th a, td a').forEach(translateLabel);
+
+    function translatePage(root) {
+      root = root || document;
+      root.querySelectorAll('h1, h2, h3, th, label, option, caption a, td a, .object-tools a, .breadcrumbs a, .breadcrumbs, button').forEach(translateLabel);
+      root.querySelectorAll('input[type="submit"], input[type="button"]').forEach(function(input) {
+        var value = (input.value || '').trim();
+        if (labels[value]) {
+          input.value = labels[value];
+        }
+      });
+    }
+
+    translatePage(document);
+    window.setTimeout(function() { translatePage(document); }, 100);
   }
 
   if (document.readyState === 'loading') {

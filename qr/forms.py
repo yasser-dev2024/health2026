@@ -1,5 +1,7 @@
 from django import forms
 
+from campaigns.services import get_active_campaign
+
 from .models import QrItem, QrLocation
 from .services import unique_location_slug
 
@@ -29,8 +31,10 @@ class QrLocationForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        if not instance.campaign_id:
+            instance.campaign = get_active_campaign()
         if not instance.slug:
-            instance.slug = unique_location_slug(instance.name, instance)
+            instance.slug = unique_location_slug(instance.name, instance, campaign=instance.campaign)
         if commit:
             instance.save()
             self.save_m2m()

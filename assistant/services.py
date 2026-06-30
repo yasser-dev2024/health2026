@@ -3,6 +3,8 @@ import re
 from django.db.models import F
 from django.utils import timezone
 
+from campaigns.services import campaign_queryset, get_active_campaign
+
 from .models import DoctorAssistantQuestion, KeywordAnswer
 
 DIACRITICS_RE = re.compile(r'[\u064B-\u065F\u0670\u0640]')
@@ -57,7 +59,7 @@ def _touch(model, pk):
     )
 
 
-def answer_query(query):
+def answer_query(query, campaign=None):
     normalized = normalize_arabic(query)
     if any(term in normalized for term in EMERGENCY_TERMS):
         return {
@@ -69,14 +71,27 @@ def answer_query(query):
 
     best = {'score': 0, 'kind': None, 'object': None}
 
-    for answer in KeywordAnswer.objects.filter(active=True):
+    keyword_answers = KeywordAnswer.objects.filter(active=True)
+    doctor_questions = DoctorAssistantQuestion.objects.filter(active=True)
+    if campaign is not None:
+        keyword_answers = campaign_queryset(keyword_answers, campaign=campaign)
+        doctor_questions = campaign_queryset(doctor_questions, campaign=campaign)
+    elif keyword_answers.filter(campaign__isnull=True).exists() or doctor_questions.filter(campaign__isnull=True).exists():
+        keyword_answers = keyword_answers.filter(campaign__isnull=True)
+        doctor_questions = doctor_questions.filter(campaign__isnull=True)
+    else:
+        active_campaign = get_active_campaign()
+        keyword_answers = campaign_queryset(keyword_answers, campaign=active_campaign)
+        doctor_questions = campaign_queryset(doctor_questions, campaign=active_campaign)
+
+    for answer in keyword_answers:
         score = _score(normalized, answer.question, answer.keywords)
-        if score > best['score']:
+        if score and score >= best['score']:
             best = {'score': score, 'kind': 'keyword', 'object': answer}
 
-    for question in DoctorAssistantQuestion.objects.filter(active=True):
+    for question in doctor_questions:
         score = _score(normalized, question.question, question.keywords)
-        if score > best['score']:
+        if score and score >= best['score']:
             best = {'score': score, 'kind': 'question', 'object': question}
 
     if not best['object']:

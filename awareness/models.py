@@ -15,6 +15,13 @@ class AwarenessContent(models.Model):
         (TYPE_LINK, 'رابط'),
     ]
 
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='awareness_contents',
+    )
     title = models.CharField(max_length=160)
     content_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default=TYPE_PDF)
     summary = models.TextField()
@@ -50,6 +57,13 @@ class AwarenessContent(models.Model):
 
 
 class AwarenessMessage(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='awareness_messages',
+    )
     title = models.CharField(max_length=140)
     text = models.TextField()
     category = models.CharField(max_length=80, default='نصيحة')

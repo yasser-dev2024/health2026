@@ -1,5 +1,7 @@
 from django.contrib.auth.models import Group
 
+from campaigns.services import get_active_campaign
+
 from .models import OperationLog
 
 
@@ -21,6 +23,7 @@ def get_client_ip(request):
 def log_operation(request, action, detail=''):
     user = request.user if getattr(request, 'user', None) and request.user.is_authenticated else None
     return OperationLog.objects.create(
+        campaign=get_active_campaign(),
         user=user,
         action=action,
         detail=detail,

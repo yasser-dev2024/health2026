@@ -26,9 +26,9 @@
         {% endif %}
       </div>
 
-      <h1 class="hero-title">{{ home_config.platform_name|default:"صيف وصحة - مساعد" }}</h1>
-      <p class="hero-tagline">{{ home_config.tagline|default:"مرشدك الصحي في صيف عسير" }}</p>
-      <p class="hero-intro">{{ home_config.intro|default:"منصة صحية وتوعوية تساعد زائر عسير على إنشاء خطة يومية آمنة، ومعرفة الفعاليات والمواقع القريبة، وجمع أختام جواز صحة عسير." }}</p>
+      <h1 class="hero-title">{{ campaign_home_page.title|default:home_config.platform_name|default:"صيف وصحة - مساعد" }}</h1>
+      <p class="hero-tagline">{{ active_campaign.main_title|default:home_config.tagline|default:"مرشدك الصحي في صيف عسير" }}</p>
+      <p class="hero-intro">{{ campaign_home_page.description|default:active_campaign.main_description|default:home_config.intro|default:"منصة صحية وتوعوية تساعد زائر عسير على إنشاء خطة يومية آمنة، ومعرفة الفعاليات والمواقع القريبة، وجمع أختام جواز صحة عسير." }}</p>
 
       <div class="signal-grid" style="margin-top:1.5rem">
         <article class="signal-card">
@@ -92,7 +92,7 @@
 
         <div class="quick-button-grid" style="margin-top:1rem">
           {% for button in quick_buttons %}
-            <a href="{{ button.url }}">{{ button.label }}</a>
+            <a href="{{ button.get_url }}">{{ button.label }}</a>
           {% empty %}
             <a href="{% url 'assistant' %}">اسأل الدكتور مساعد</a>
             <a href="{% url 'nearby' %}">قريب مني</a>

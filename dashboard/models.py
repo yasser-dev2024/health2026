@@ -3,6 +3,13 @@ from django.db import models
 
 
 class OperationLog(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='operation_logs',
+    )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     action = models.CharField(max_length=120)
     detail = models.TextField(blank=True)

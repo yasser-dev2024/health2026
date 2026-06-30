@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from campaigns.admin_mixins import ActiveCampaignAdminMixin
+
 from .models import (
     FeatureFlag,
     GeneralSettings,
@@ -10,28 +12,33 @@ from .models import (
 
 
 @admin.register(HomeConfig)
-class HomeConfigAdmin(admin.ModelAdmin):
-    list_display = ('platform_name', 'tagline', 'active', 'updated_at')
+class HomeConfigAdmin(ActiveCampaignAdminMixin, admin.ModelAdmin):
+    list_display = ('platform_name', 'campaign', 'tagline', 'active', 'updated_at')
+    list_filter = ('campaign', 'active')
 
 
 @admin.register(HomeQuickButton)
-class HomeQuickButtonAdmin(admin.ModelAdmin):
-    list_display = ('label', 'url', 'order', 'active')
+class HomeQuickButtonAdmin(ActiveCampaignAdminMixin, admin.ModelAdmin):
+    list_display = ('label', 'campaign', 'url', 'order', 'active')
+    list_filter = ('campaign', 'active')
     list_editable = ('order', 'active')
 
 
 @admin.register(FeatureFlag)
-class FeatureFlagAdmin(admin.ModelAdmin):
-    list_display = ('label', 'key', 'enabled')
+class FeatureFlagAdmin(ActiveCampaignAdminMixin, admin.ModelAdmin):
+    list_display = ('label', 'campaign', 'key', 'enabled')
+    list_filter = ('campaign', 'enabled')
     list_editable = ('enabled',)
 
 
 @admin.register(GeneralSettings)
-class GeneralSettingsAdmin(admin.ModelAdmin):
-    list_display = ('site_name', 'default_city', 'support_phone', 'emergency_phone')
+class GeneralSettingsAdmin(ActiveCampaignAdminMixin, admin.ModelAdmin):
+    list_display = ('site_name', 'campaign', 'default_city', 'support_phone', 'emergency_phone')
+    list_filter = ('campaign', 'maintenance_mode')
     fieldsets = (
         ('الإعدادات العامة', {
             'fields': (
+                'campaign',
                 'site_name',
                 'default_city',
                 'support_phone',
@@ -55,7 +62,8 @@ class GeneralSettingsAdmin(admin.ModelAdmin):
 
 
 @admin.register(SmartEntryConfig)
-class SmartEntryConfigAdmin(admin.ModelAdmin):
-    list_display = ('id', 'active', 'updated_at')
+class SmartEntryConfigAdmin(ActiveCampaignAdminMixin, admin.ModelAdmin):
+    list_display = ('id', 'campaign', 'active', 'updated_at')
+    list_filter = ('campaign', 'active')
 
 # Register your models here.

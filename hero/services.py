@@ -1,4 +1,5 @@
 from core.utils import get_visitor_id
+from campaigns.services import campaign_queryset, get_active_campaign, record_campaign_interaction
 
 from .models import HealthHeroEntry, HealthHeroQuestion
 
@@ -16,8 +17,9 @@ def badge_for_score(score, total):
 
 
 def evaluate_answers(request, posted_answers, contact_data=None):
+    campaign = get_active_campaign()
     visitor_id = get_visitor_id(request)
-    questions = list(HealthHeroQuestion.objects.filter(active=True).order_by('order', 'id'))
+    questions = list(campaign_queryset(HealthHeroQuestion.objects.filter(active=True), campaign=campaign).order_by('order', 'id'))
     score = 0
     details = {}
     for question in questions:
@@ -38,7 +40,9 @@ def evaluate_answers(request, posted_answers, contact_data=None):
     phone = (contact_data or {}).get('phone', '').strip()
     total = len(questions) * POINTS_PER_CORRECT_ANSWER
 
+    record_campaign_interaction(request, 'interaction', campaign=campaign, visitor_id=visitor_id, action='hero_challenge')
     return HealthHeroEntry.objects.create(
+        campaign=campaign,
         visitor_id=visitor_id,
         participant_name=participant_name,
         phone=phone,

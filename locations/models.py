@@ -19,6 +19,13 @@ class HealthLocation(models.Model):
         (TYPE_EMERGENCY, 'طوارئ'),
     ]
 
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='health_locations',
+    )
     name = models.CharField(max_length=160)
     location_type = models.CharField(max_length=30, choices=TYPE_CHOICES, default=TYPE_HEALTH_CENTER)
     city = models.CharField(max_length=80, default='أبها')

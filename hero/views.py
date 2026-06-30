@@ -1,5 +1,7 @@
 from django.shortcuts import render
 
+from campaigns.services import campaign_queryset, get_active_campaign
+
 from .forms import HeroChallengeForm
 from .models import HealthHeroQuestion
 from .services import POINTS_PER_CORRECT_ANSWER, evaluate_answers
@@ -20,7 +22,8 @@ def _question_payload(questions):
 
 
 def hero_view(request):
-    questions = list(HealthHeroQuestion.objects.filter(active=True).order_by('order', 'id'))
+    campaign = get_active_campaign()
+    questions = list(campaign_queryset(HealthHeroQuestion.objects.filter(active=True), campaign=campaign).order_by('order', 'id'))
     form = HeroChallengeForm(request.POST or None)
     entry = None
     if request.method == 'POST' and form.is_valid():

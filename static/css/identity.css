@@ -2840,44 +2840,49 @@ th {
 
 .official-certificate-text {
   position: absolute;
-  inset-inline: 15%;
-  top: 31%;
+  inset-inline: 18%;
+  top: 29%;
   display: grid;
   justify-items: center;
   text-align: center;
+  row-gap: clamp(0.08rem, 0.35vw, 0.28rem);
 }
 
 .official-certificate-text span {
   color: #123F6D;
-  font-size: clamp(0.95rem, 2vw, 1.9rem);
+  font-size: clamp(0.78rem, 1.5vw, 1.45rem);
   font-weight: 950;
 }
 
 .official-certificate-text h2 {
-  margin: 0.35rem 0 0;
+  margin: 0.18rem 0 0;
   color: #D4AF37;
-  font-size: clamp(1.2rem, 4vw, 3rem);
-  line-height: 1.2;
+  font-size: clamp(1.05rem, 3vw, 2.35rem);
+  line-height: 1.1;
 }
 
 .official-certificate-text p {
-  margin: 0.45rem 0 0;
+  margin: 0.2rem 0 0;
   color: #475569;
-  font-size: clamp(0.62rem, 1.6vw, 1.15rem);
+  font-size: clamp(0.56rem, 1.18vw, 0.98rem);
   font-weight: 800;
+  line-height: 1.45;
+  max-width: 82%;
 }
 
 .official-certificate-text strong {
-  margin-top: 0.2rem;
+  margin-top: 0.06rem;
   color: #0f172a;
-  font-size: clamp(1.25rem, 4.4vw, 3.1rem);
-  line-height: 1.25;
+  font-size: clamp(1.05rem, 3.2vw, 2.35rem);
+  line-height: 1.08;
+  max-width: 82%;
+  overflow-wrap: anywhere;
 }
 
 .official-certificate-text b {
-  margin-top: 0.45rem;
+  margin-top: 0.2rem;
   color: #15508A;
-  font-size: clamp(0.75rem, 1.8vw, 1.25rem);
+  font-size: clamp(0.62rem, 1.25vw, 1.05rem);
 }
 
 @media (max-width: 520px) {
@@ -2916,8 +2921,20 @@ th {
   }
 
   .official-certificate-text {
-    inset-inline: 12%;
-    top: 32%;
+    inset-inline: 15%;
+    top: 30%;
+  }
+
+  .official-certificate-text h2 {
+    font-size: clamp(0.82rem, 5vw, 1.35rem);
+  }
+
+  .official-certificate-text strong {
+    font-size: clamp(0.9rem, 6vw, 1.55rem);
+  }
+
+  .official-certificate-text p {
+    max-width: 88%;
   }
 }
 

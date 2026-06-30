@@ -1,5 +1,6 @@
 from events.models import HealthEvent
 from locations.models import HealthLocation
+from campaigns.services import campaign_queryset, get_active_campaign
 
 
 def _older_adult(answers):
@@ -11,7 +12,8 @@ def _first_or_none(queryset):
 
 
 def _pick_event(answers):
-    events = HealthEvent.objects.filter(active=True).order_by('order', 'date')
+    campaign = get_active_campaign()
+    events = campaign_queryset(HealthEvent.objects.filter(active=True), campaign=campaign).order_by('order', 'date')
     if answers.get('party_type') == 'family' or answers.get('visit_purpose') == 'family':
         family_event = events.filter(category__icontains='عائل').first()
         if family_event:
@@ -28,7 +30,8 @@ def _pick_event(answers):
 
 
 def _pick_location(answers, location_type):
-    locations = HealthLocation.objects.filter(active=True, location_type=location_type)
+    campaign = get_active_campaign()
+    locations = campaign_queryset(HealthLocation.objects.filter(active=True, location_type=location_type), campaign=campaign)
     if answers.get('current_location') == 'soudah':
         preferred = locations.filter(city__icontains='السودة').first()
         if preferred:

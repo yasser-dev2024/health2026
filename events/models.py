@@ -4,6 +4,13 @@ from core.validators import validate_safe_url
 
 
 class HealthEvent(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='health_events',
+    )
     title = models.CharField(max_length=160)
     description = models.TextField()
     city = models.CharField(max_length=80, default='أبها')

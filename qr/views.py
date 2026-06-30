@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from campaigns.services import get_active_campaign
 from core.utils import get_visitor_id
 from .models import QrLocation, QrVisitorProfile
 from .services import record_item_scan, record_location_scan
@@ -21,8 +22,9 @@ def qr_item_view(request, item_id):
 
 @require_POST
 def qr_profile_view(request):
+    campaign = get_active_campaign()
     visitor_id = get_visitor_id(request)
-    profile, _ = QrVisitorProfile.objects.get_or_create(visitor_id=visitor_id)
+    profile, _ = QrVisitorProfile.objects.get_or_create(campaign=campaign, visitor_id=visitor_id)
 
     location_id = request.session.get('qr_start_location_id')
     if location_id:

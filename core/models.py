@@ -12,6 +12,13 @@ class TimeStampedModel(models.Model):
 
 
 class HomeConfig(TimeStampedModel):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='home_configs',
+    )
     platform_name = models.CharField(max_length=120, default='صيف وصحة - مساعد')
     tagline = models.CharField(max_length=180, default='مرشدك الصحي في صيف عسير')
     intro = models.TextField(
@@ -36,6 +43,13 @@ class HomeConfig(TimeStampedModel):
 
 
 class HomeQuickButton(TimeStampedModel):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='legacy_home_buttons',
+    )
     label = models.CharField(max_length=90)
     url = models.CharField(max_length=220, validators=[validate_safe_url])
     icon = models.CharField(max_length=40, blank=True)
@@ -50,8 +64,18 @@ class HomeQuickButton(TimeStampedModel):
     def __str__(self):
         return self.label
 
+    def get_url(self):
+        return self.url
+
 
 class FeatureFlag(TimeStampedModel):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='feature_flags',
+    )
     key = models.SlugField(max_length=80, unique=True)
     label = models.CharField(max_length=120)
     description = models.TextField(blank=True)
@@ -67,6 +91,13 @@ class FeatureFlag(TimeStampedModel):
 
 
 class GeneralSettings(TimeStampedModel):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='general_settings',
+    )
     site_name = models.CharField(max_length=120, default='صيف وصحة - مساعد')
     default_city = models.CharField(max_length=80, default='أبها')
     support_phone = models.CharField(max_length=30, default='937')
@@ -92,6 +123,13 @@ class GeneralSettings(TimeStampedModel):
 
 
 class SmartEntryConfig(TimeStampedModel):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='smart_entry_configs',
+    )
     privacy_note = models.TextField(
         default='نستخدم معرف زائر عشوائي فقط لتحسين الرحلة واحتساب نقاط QR، ولا نجمع رقم الجوال أو موقعا دقيقا.'
     )

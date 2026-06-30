@@ -1,5 +1,6 @@
 from django.shortcuts import render
 
+from campaigns.services import campaign_queryset, get_active_campaign
 from core.utils import get_visitor_id
 from qr.models import QrLocationVisit, QrVisit
 
@@ -8,11 +9,12 @@ from .services import active_stamps, get_or_create_passport
 
 
 def passport_view(request):
+    campaign = get_active_campaign()
     visitor_id = get_visitor_id(request)
-    passport = get_or_create_passport(visitor_id)
-    available_achievements = PassportAchievement.objects.filter(active=True)
-    item_visits = QrVisit.objects.filter(visitor_id=visitor_id).select_related('qr_item').order_by('-created_at')[:8]
-    location_visits = QrLocationVisit.objects.filter(visitor_id=visitor_id).select_related('qr_location').order_by('-created_at')[:8]
+    passport = get_or_create_passport(visitor_id, campaign=campaign)
+    available_achievements = campaign_queryset(PassportAchievement.objects.filter(active=True), campaign=campaign)
+    item_visits = campaign_queryset(QrVisit.objects.filter(visitor_id=visitor_id), campaign=campaign).select_related('qr_item').order_by('-created_at')[:8]
+    location_visits = campaign_queryset(QrLocationVisit.objects.filter(visitor_id=visitor_id), campaign=campaign).select_related('qr_location').order_by('-created_at')[:8]
     whatsapp_text = f'أنجزت {passport.points} نقطة في جواز صحة عسير عبر منصة صيف وصحة - مساعد'
 
     return render(

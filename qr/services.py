@@ -7,6 +7,8 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+from campaigns.models import CampaignInteraction
+from campaigns.services import campaign_queryset, get_active_campaign, record_campaign_interaction
 from core.utils import get_visitor_id
 from passport.services import award_stamp, get_or_create_passport, increment_scan
 
@@ -94,9 +96,13 @@ def slugify_location_name(name):
     return result or 'location'
 
 
-def unique_location_slug(name, instance=None):
+def unique_location_slug(name, instance=None, campaign=None):
     base_slug = slugify_location_name(name)
-    used = set(QrLocation.objects.exclude(pk=getattr(instance, 'pk', None)).values_list('slug', flat=True))
+    campaign = campaign or getattr(instance, 'campaign', None) or get_active_campaign()
+    used_queryset = QrLocation.objects.exclude(pk=getattr(instance, 'pk', None))
+    if campaign:
+        used_queryset = used_queryset.filter(campaign=campaign)
+    used = set(used_queryset.values_list('slug', flat=True))
     slug = base_slug
     suffix = 2
     while slug in used or slug in RESERVED_QR_SLUGS:
@@ -131,30 +137,34 @@ def _recent_location_scan_exists(visitor_id, location):
 
 def _record_location_scan(request, location):
     visitor_id = get_visitor_id(request)
+    campaign = location.campaign or get_active_campaign()
     _remember_start_location(request, location)
 
     if _recent_location_scan_exists(visitor_id, location):
-        passport = get_or_create_passport(visitor_id)
+        passport = get_or_create_passport(visitor_id, campaign=campaign)
         location.refresh_from_db()
         return visitor_id, passport, False
 
     now = timezone.now()
     QrScan.objects.create(
+        campaign=campaign,
         visitor_id=visitor_id,
         qr_type=QrScan.TYPE_LOCATION,
         path=request.get_full_path()[:240],
         qr_location=location,
         user_agent=_user_agent(request),
     )
-    QrLocationVisit.objects.create(visitor_id=visitor_id, qr_location=location)
+    QrLocationVisit.objects.create(campaign=campaign, visitor_id=visitor_id, qr_location=location)
     QrLocation.objects.filter(pk=location.pk).update(scans_count=F('scans_count') + 1, last_scan_at=now)
-    passport = increment_scan(visitor_id)
+    record_campaign_interaction(request, CampaignInteraction.TYPE_QR_SCAN, campaign=campaign, visitor_id=visitor_id, qr_location_id=location.pk)
+    passport = increment_scan(visitor_id, campaign=campaign)
     location.refresh_from_db()
     return visitor_id, passport, True
 
 
 def record_location_scan(request, slug):
-    location = get_object_or_404(QrLocation, slug=slug, active=True)
+    campaign = get_active_campaign()
+    location = get_object_or_404(campaign_queryset(QrLocation.objects.filter(slug=slug, active=True), campaign=campaign))
     visitor_id, passport, counted = _record_location_scan(request, location)
     return {
         'visitor_id': visitor_id,
@@ -168,12 +178,13 @@ def record_location_scan(request, slug):
 
 def record_home_qr_scan(request, slug):
     visitor_id = get_visitor_id(request)
-    location = QrLocation.objects.filter(slug=slug, active=True).first()
+    campaign = get_active_campaign()
+    location = campaign_queryset(QrLocation.objects.filter(slug=slug, active=True), campaign=campaign).first()
     if not location:
         return {
             'visitor_id': visitor_id,
             'location': None,
-            'passport': get_or_create_passport(visitor_id),
+            'passport': get_or_create_passport(visitor_id, campaign=campaign),
             'stamp_awarded': False,
             'counted': False,
             'duplicate': False,
@@ -192,19 +203,23 @@ def record_home_qr_scan(request, slug):
 
 def record_item_scan(request, item_id):
     visitor_id = get_visitor_id(request)
-    item = get_object_or_404(QrItem, pk=item_id, active=True)
+    campaign = get_active_campaign()
+    item = get_object_or_404(campaign_queryset(QrItem.objects.filter(pk=item_id, active=True), campaign=campaign))
+    campaign = item.campaign or campaign
 
     QrScan.objects.create(
+        campaign=campaign,
         visitor_id=visitor_id,
         qr_type=QrScan.TYPE_ITEM,
         path=request.get_full_path()[:240],
         qr_item=item,
         user_agent=_user_agent(request),
     )
-    QrVisit.objects.create(visitor_id=visitor_id, qr_item=item)
+    QrVisit.objects.create(campaign=campaign, visitor_id=visitor_id, qr_item=item)
     QrItem.objects.filter(pk=item.pk).update(scans_count=F('scans_count') + 1)
-    increment_scan(visitor_id)
-    passport, awarded = award_stamp(visitor_id, item.stamp)
+    record_campaign_interaction(request, CampaignInteraction.TYPE_QR_SCAN, campaign=campaign, visitor_id=visitor_id, qr_item_id=item.pk)
+    increment_scan(visitor_id, campaign=campaign)
+    passport, awarded = award_stamp(visitor_id, item.stamp, campaign=campaign)
     item.refresh_from_db()
     return {
         'visitor_id': visitor_id,

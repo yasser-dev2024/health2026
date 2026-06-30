@@ -4,6 +4,13 @@ from core.validators import validate_safe_url
 
 
 class KeywordAnswer(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='keyword_answers',
+    )
     question = models.CharField(max_length=180)
     keywords = models.JSONField(default=list)
     answer = models.TextField()
@@ -27,6 +34,13 @@ class KeywordAnswer(models.Model):
 
 
 class DoctorAssistantQuestion(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='doctor_questions',
+    )
     question = models.CharField(max_length=180)
     answer = models.TextField()
     keywords = models.JSONField(default=list)

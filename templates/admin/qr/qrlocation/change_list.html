@@ -1,0 +1,58 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.qr-location-create-panel {
+  margin: 0 0 14px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #15508A;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.qr-location-create-panel strong {
+  display: block;
+  font-size: 1.05rem;
+}
+.qr-location-create-panel span {
+  display: block;
+  margin-top: 3px;
+  opacity: .9;
+}
+.qr-location-create-panel a {
+  border-radius: 6px;
+  background: rgba(255,255,255,.18);
+  color: #fff !important;
+  padding: 8px 12px;
+  text-decoration: none;
+  font-weight: 900;
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .qr-location-create-panel {
+    display: block;
+  }
+  .qr-location-create-panel a {
+    display: block;
+    margin-top: 10px;
+    text-align: center;
+  }
+}
+</style>
+{% endblock %}
+
+{% block object-tools %}
+<div class="qr-location-create-panel">
+  <div>
+    <strong>إنشاء باركود QR للمناطق</strong>
+    <span>زر ثابت وواضح لإنشاء باركود لكل منطقة أو موقع، مع حفظ الرابط والصورة والإحصائيات.</span>
+  </div>
+  <a href="{% url 'admin:qr_qrlocation_add' %}">+ إنشاء باركود QR للمناطق</a>
+</div>
+{{ block.super }}
+{% endblock %}

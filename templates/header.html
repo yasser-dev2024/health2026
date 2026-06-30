@@ -3,11 +3,17 @@
   <div class="container header-inner">
     <a class="brand" href="{% url 'core:home' %}">
       <span class="brand-mark">
-        <img src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي">
+        {% if active_campaign.logo %}
+          <img src="{{ active_campaign.logo.url }}" alt="{{ active_campaign.name }}">
+        {% elif active_campaign.logo_static_path %}
+          <img src="{% static active_campaign.logo_static_path %}" alt="{{ active_campaign.name }}">
+        {% else %}
+          <img src="{% static 'img/cluster-color.png' %}" alt="تجمع عسير الصحي">
+        {% endif %}
       </span>
       <span class="brand-copy">
-        <strong>صيف وصحة</strong>
-        <small>مساعد عسير</small>
+        <strong>{{ active_campaign.name|default:"صيف وصحة" }}</strong>
+        <small>{{ active_campaign.main_title|default:"مساعد عسير" }}</small>
       </span>
     </a>
     <nav class="nav" aria-label="التنقل الرئيسي">

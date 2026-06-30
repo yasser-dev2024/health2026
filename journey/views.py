@@ -1,5 +1,6 @@
 from django.shortcuts import redirect, render
 
+from campaigns.services import get_active_campaign, record_campaign_interaction
 from core.utils import get_visitor_id
 
 from .forms import JourneyForm
@@ -8,12 +9,14 @@ from .services import build_daily_plan
 
 
 def journey_view(request):
+    campaign = get_active_campaign()
     form = JourneyForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         visitor_id = get_visitor_id(request)
         answers = form.cleaned_data
         request.session['journey_answers'] = answers
-        JourneySubmission.objects.create(visitor_id=visitor_id, **answers)
+        JourneySubmission.objects.create(campaign=campaign, visitor_id=visitor_id, **answers)
+        record_campaign_interaction(request, 'interaction', campaign=campaign, visitor_id=visitor_id, action='journey_submission')
         return redirect('plan')
 
     return render(request, 'journey/form.html', {'form': form})

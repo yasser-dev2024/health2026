@@ -1,0 +1,122 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.campaign-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.campaign-dashboard-card {
+  border-radius: 8px;
+  padding: 14px;
+  background: #15508A;
+  color: #fff;
+}
+.campaign-dashboard-card strong {
+  display: block;
+  font-size: 1.6rem;
+}
+.campaign-dashboard-section {
+  border: 1px solid var(--hairline-color);
+  border-radius: 8px;
+  background: var(--body-bg);
+  padding: 16px;
+  margin: 14px 0;
+}
+.campaign-dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.campaign-dashboard-actions a {
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: #15508A;
+  color: #fff !important;
+  text-decoration: none;
+}
+@media (max-width: 900px) {
+  .campaign-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>لوحة إحصائيات الحملات</h1>
+  {% if campaign %}
+    <p>الحملة المعروضة: <strong>{{ campaign.name }}</strong></p>
+  {% else %}
+    <p>لم يتم اختيار حملة نشطة.</p>
+  {% endif %}
+
+  <div class="campaign-dashboard-grid">
+    <div class="campaign-dashboard-card"><span>الزوار</span><strong>{{ active_stats.visitors }}</strong></div>
+    <div class="campaign-dashboard-card"><span>مسحات QR</span><strong>{{ active_stats.qr_scans }}</strong></div>
+    <div class="campaign-dashboard-card"><span>التفاعلات</span><strong>{{ active_stats.interactions }}</strong></div>
+    <div class="campaign-dashboard-card"><span>فتح الدكتور مساعد</span><strong>{{ active_stats.assistant_opens }}</strong></div>
+  </div>
+
+  <section class="campaign-dashboard-section">
+    <h2>جميع الحملات</h2>
+    <div class="campaign-dashboard-grid">
+      <div class="campaign-dashboard-card"><span>إجمالي الزوار</span><strong>{{ all_stats.visitors }}</strong></div>
+      <div class="campaign-dashboard-card"><span>إجمالي مسحات QR</span><strong>{{ all_stats.qr_scans }}</strong></div>
+      <div class="campaign-dashboard-card"><span>إجمالي التفاعلات</span><strong>{{ all_stats.interactions }}</strong></div>
+      <div class="campaign-dashboard-card"><span>إجمالي فتح الدكتور مساعد</span><strong>{{ all_stats.assistant_opens }}</strong></div>
+    </div>
+  </section>
+
+  <section class="campaign-dashboard-section">
+    <h2>الحملات</h2>
+    <table>
+      <thead>
+        <tr><th>الاسم</th><th>الحالة</th><th>نشطة</th><th>التفاعلات</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for item in campaigns %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.get_status_display }}</td>
+          <td>{{ item.is_active|yesno:"نعم,لا" }}</td>
+          <td>{{ item.total_interactions }}</td>
+          <td><a href="?campaign={{ item.pk }}">عرض</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="campaign-dashboard-section">
+    <h2>باركود QR للمناطق</h2>
+    <div class="campaign-dashboard-actions">
+      <a href="{% url 'admin:qr_qrlocation_add' %}">إنشاء باركود QR للمناطق</a>
+      <a href="{% url 'admin:qr_qrlocation_changelist' %}">إدارة باركودات المناطق</a>
+      <a href="{% url 'admin:qr_qrscan_changelist' %}">سجل المسح</a>
+    </div>
+    <table>
+      <thead>
+        <tr><th>الاسم</th><th>المعرّف</th><th>المسحات</th><th>تنزيل</th></tr>
+      </thead>
+      <tbody>
+      {% for location in qr_locations %}
+        <tr>
+          <td>{{ location.name }}</td>
+          <td>{{ location.slug }}</td>
+          <td>{{ location.scans_count }}</td>
+          <td><a href="{% url 'admin:campaigns_qr_location_png' location.pk %}?download=1">PNG</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">لا توجد باركودات مناطق حتى الآن.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}
