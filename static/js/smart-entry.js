@@ -6,8 +6,9 @@
 
   const params = new URLSearchParams(window.location.search);
   const forceEntry = params.get('showEntry') === '1';
+  const resetEntry = params.get('resetEntry') === '1';
   const hasQrEntry = params.has('qr');
-  const doneKey = 'aseer_smart_entry_done';
+  const doneKey = 'aseer_smart_entry_done_v20260630';
   const profileUrl = entry.dataset.profileUrl || '';
   const profile = {
     visitor_type: '',
@@ -20,6 +21,10 @@
   const resultTitle = entry.querySelector('[data-result-title]');
   const resultNotice = entry.querySelector('[data-result-notice]');
   const resultRoute = entry.querySelector('[data-result-route]');
+
+  if (resetEntry) {
+    window.sessionStorage.removeItem(doneKey);
+  }
 
   function getCookie(name) {
     const parts = document.cookie ? document.cookie.split(';') : [];
@@ -100,7 +105,7 @@
       profile.age_group = target.dataset.age || '';
       queueSaveProfile();
       ageMessage.textContent = target.dataset.message || '';
-      showStep('visitor');
+      showStep('healthTopic');
       return;
     }
 
@@ -114,14 +119,14 @@
     if (target.matches('[data-party]')) {
       profile.party_type = target.dataset.party || '';
       queueSaveProfile();
-      showStep('healthTopic');
+      showStep('call937');
       return;
     }
 
     if (target.matches('[data-health-topic]')) {
       profile.health_topic = target.dataset.healthTopic || '';
       queueSaveProfile();
-      showStep('call937');
+      showStep('visitor');
       return;
     }
 

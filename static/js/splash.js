@@ -7,8 +7,13 @@
   const params = new URLSearchParams(window.location.search);
   const forceSplash = params.get('showSplash') === '1';
   const forceEntry = params.get('showEntry') === '1';
-  const seenKey = 'aseer_splash_seen';
+  const resetEntry = params.get('resetEntry') === '1';
+  const seenKey = 'aseer_splash_seen_v20260630';
   const closeButton = splash.querySelector('[data-splash-close]');
+
+  if (resetEntry) {
+    window.sessionStorage.removeItem(seenKey);
+  }
 
   function hideSplash(delay) {
     window.setTimeout(function () {
